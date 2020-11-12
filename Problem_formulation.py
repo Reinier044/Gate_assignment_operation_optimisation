@@ -5,60 +5,133 @@ Created on Thu Nov 12 09:11:23 2020
 @author: Reinier
 """
 import numpy as np
+import math
+import sys
 
-Flights = np.array([1,2,3,4])
-Flights_arrival = np.array([10,10.5,11,11.5])
-Flights_t_stay = np.array([1,1,1,1])
-Flights_PAX = np.array([100,200,100,200])
+#define flights
+Flights = np.array([1,2,3,4,5])
+Flights_arrival = np.array([10,10.5,11,11.5,12])
+Flights_class = np.array([4,4,4,4,4])
+Flights_t_stay = np.array([1,1,1,1,1])
+Flights_PAX = np.array([100,200,100,200,200])
 
+#define gates
 Gates = np.array([1,2,3,4])
+Gates_class = np.array([4,4,4,4])
 Gates_distance = np.array([100,200,300,400])
 
-#Generate time interval array
-t = 0
-t_int = 0.25
-tmax = 12
-t_interval = np.array([])
-while t <= tmax:
-    t_interval = np.append(t_interval,t)
-    t = t + t_int
+#Check input data for errors
+Stop = False
+if len(Flights) != len(Flights_arrival):
+    print('missing arrival times')
+    Stop = True
+if len(Flights) != len(Flights_class):
+    print('missing flight-gate class compatibility')
+    Stop = True
+if len(Flights) != len(Flights_t_stay):
+    print('missing flight staying times')
+    Stop = True
+if len(Flights) != len(Flights_PAX):
+    print('missing number of passengers for flights')
+    Stop = True
+if len(Gates) != len(Gates_class):
+    print('missing gate class compatibility')
+    Stop = True
+if len(Gates) != len(Gates_distance):
+    print('missing gate distances')
+    Stop = True
+if Stop:
+    sys.exit()
     
 
+#Generate time interval (in hours) array
+t_start = 9
+t = t_start
+t_int = min(Flights_t_stay,)/2
+tmax = 13
+times = np.array([])
+while t <= tmax:
+    times = np.append(times,t)
+    t += t_int
+    
+#Generate ait
+index = 0
+ait = times
+while index < len(Flights):
+    Arrival = Flights_arrival[index]
+    Departure = Arrival + math.ceil(Flights_t_stay[index]/t_int)*t_int
+    a = np.array([])
+    for time in times:
+        if time > (Arrival-t_int) and time+t_int <= (Departure):
+            a = np.append(a,1)
+        else:
+            a = np.append(a,0)
+    ait = np.vstack([ait,a])
+    index += 1
+ait = np.delete(ait,0,axis=0)
 
 #Generate Xij's
-Xijs = np.zeros(Flights[-1])
+Xijs = []
 for flightnumber in Flights:
     Xi = 'x'+str(flightnumber)
     Xis = np.array([])
     for gatenumber in Gates:
         Xij = Xi+str(gatenumber)
         Xis = np.append(Xis,Xij)
-    Xijs = np.vstack([Xijs,Xis])
-Xijs = np.delete(Xijs,0,axis=0)
+    Xijs.append(Xis)
 
+#Write constraint that each gate has at most one flight at the time. Including compatibility.
+time_count = 0
+for time in times:
+    gate_count = 0
+    for gatenumber in Gates: 
+        entry = False
+        flight_count = 0
+        constraint = ""
+        constraint_name = "One Flight per gate for gate " + str(gatenumber) + ' at ' + str(round(time,2)) + ": "
+        for flightnumber in Flights: 
+            Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
+            GateClassReq = Flights_class[flight_count] #Check Gate class needed
+            GateClassActual = Gates_class[gate_count]  #Check current gate class
+            if flightnumber == Flights[-1] and ait[flight_count][time_count]>0:
+                if GateClassReq == GateClassActual:
+                    constraint += str(Xij)
+                    entry = True
+                    last = 0
+            elif ait[flight_count][time_count]>0:
+                if GateClassReq == GateClassActual:
+                    constraint += str(Xij) + " + "
+                    entry = True
+                    last = 1
+            flight_count += 1
+        if entry:
+            #Arithmatic in order to get the code right.
+            if last == 1:
+                constraint = constraint_name + constraint[:-3] + " <= 1"
+            if last == 0:
+                constraint = constraint_name + constraint + " <= 1"
+            print(constraint)
+        gate_count += 1
+    time_count += 1
 
-for gatenumber in Gates: 
-    constraint = ""
-    constraint_name = "One Flight per gate for gate " + str(gatenumber) +  ":"
-    for flightnumber in Flights: 
-        Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
-        if flightnumber == Flights[-1]:
-            constraint += str(Xij)
-        else:
-            constraint += str(Xij) + " + "
-    constraint = constraint_name + constraint + " = 1"
-    print(constraint)
-
-
-#Write constraint that each flight is assigned to one gate
-for Xi in Xijs:
-    constraint = 'Flight assigned to gate: '
-    flag = 0
-    while flag < len(Xi):
-        if flag == 0:
-            constraint = constraint + str(Xi[flag])
-        else:
-            constraint = constraint + ' + ' + str(Xi[flag])
-        flag = flag + 1
-    print(constraint+' = 1')
+#Write constraint that each flight is assigned to one gate at time t
+time_count = 0
+for time in times:
+    flight_count = 0
+    for Xi in Xijs:
+        entry = False
+        constraint = 'Flight assigned to gate at ' + str(round(time,2)) + ': '
+        flag = 0
+        while flag < len(Xi):
+            if flag == 0 and ait[flight_count][time_count]>0:
+                constraint += str(Xi[flag]) 
+                entry = True
+            elif ait[flight_count][time_count]>0:
+                constraint += ' + ' + str(Xi[flag])
+                entry = True
+            flag += 1
+        flight_count += 1
+        if entry:
+            print(constraint+' = 1')
+    time_count += 1
 
