@@ -24,9 +24,9 @@ for flightnumber in Flights:
         Xij = Xi+str(gatenumber)
         Xis = np.append(Xis,Xij)
     Xijs = np.vstack([Xijs,Xis])
-
 Xijs = np.delete(Xijs,0,axis=0)
 
+<<<<<<< HEAD
 for flightnumber in Flights: 
     constraint = ""
     constraint_name = "One Flight per gate, flight " + str(flightnumber) +  ":"
@@ -38,3 +38,18 @@ for flightnumber in Flights:
             constraint += str(Xij) + " + "
     constraint = constraint_name + constraint
     print(constraint)
+=======
+
+#Write constraint that each flight is assigned to one gate
+for Xi in Xijs:
+    constraint = 'Flight assigned to gate: '
+    flag = 0
+    while flag < len(Xi):
+        if flag == 0:
+            constraint = constraint + str(Xi[flag])
+        else:
+            constraint = constraint + ' + ' + str(Xi[flag])
+        flag = flag + 1
+    print(constraint+' = 1')
+        
+>>>>>>> 1607e608b2fdd39b12b96e6d3f1a8cfe3034e54a
