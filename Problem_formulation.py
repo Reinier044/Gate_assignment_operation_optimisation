@@ -11,3 +11,5 @@ Flights_arrival = np.array([10,10.5,11,11.5])
 Flights_t_stay = np.array([1,1,1,1])
 Flights_PAX = np.array([100,200,100,200])
 
+Gates = np.array([1,2,3,4])
+Gates_distance = np.array([100,200,300,400])
