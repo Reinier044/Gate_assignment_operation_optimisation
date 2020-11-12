@@ -24,9 +24,10 @@ for flightnumber in Flights:
         Xij = Xi+str(gatenumber)
         Xis = np.append(Xis,Xij)
     Xijs = np.vstack([Xijs,Xis])
-
 Xijs = np.delete(Xijs,0,axis=0)
 
+
+#Write constraint that each flight is assigned to one gate
 for Xi in Xijs:
     constraint = 'Flight assigned to gate: '
     flag = 0
