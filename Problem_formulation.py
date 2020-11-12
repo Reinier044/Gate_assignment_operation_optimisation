@@ -13,3 +13,16 @@ Flights_PAX = np.array([100,200,100,200])
 
 Gates = np.array([1,2,3,4])
 Gates_distance = np.array([100,200,300,400])
+
+
+#Generate Xij's
+Xijs = np.zeros(Flights[-1])
+for flightnumber in Flights:
+    Xi = 'x'+str(flightnumber)
+    Xis = np.array([])
+    for gatenumber in Gates:
+        Xij = Xi+str(gatenumber)
+        Xis = np.append(Xis,Xij)
+    Xijs = np.vstack([Xijs,Xis])
+
+Xijs = np.delete(Xijs,0,axis=0)
