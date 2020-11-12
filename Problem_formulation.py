@@ -2,6 +2,6 @@
 """
 Created on Thu Nov 12 09:11:23 2020
 
-@author: Reini
+@author: Reinier
 """
 
