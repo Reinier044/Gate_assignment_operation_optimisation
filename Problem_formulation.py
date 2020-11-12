@@ -26,3 +26,15 @@ for flightnumber in Flights:
     Xijs = np.vstack([Xijs,Xis])
 
 Xijs = np.delete(Xijs,0,axis=0)
+
+for Xi in Xijs:
+    constraint = 'Flight assigned to gate: '
+    flag = 0
+    while flag < len(Xi):
+        if flag == 0:
+            constraint = constraint + str(Xi[flag])
+        else:
+            constraint = constraint + ' + ' + str(Xi[flag])
+        flag = flag + 1
+    print(constraint+' = 1')
+        
