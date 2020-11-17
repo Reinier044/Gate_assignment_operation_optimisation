@@ -88,7 +88,7 @@ type_variable = "int+ "
 
 for flight in range(len(Flights)):
     for gate in range(len(Gates)):
-        definition = "dvar " + type_variable + Xijs[(flight)][(gate)]
+        definition = "dvar " + type_variable + Xijs[(flight)][(gate)] + ";"
         print(definition) 
 #Print white line
 print(" ")
@@ -102,7 +102,7 @@ for time in times:
         entry = False
         flight_count = 0
         constraint = ""
-        constraint_name = "One Flight per gate for gate " + str(gatenumber) + ' at ' + str(round(time,2)) + ": "
+        constraint_name = "One_Flight_per_gate_for_gate_" + str(gatenumber) + '_at_' + str(round(time,2)) + ": "
         for flightnumber in Flights: 
             Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
             GateClassReq = Flights_class[flight_count] #Check Gate class needed
@@ -121,9 +121,9 @@ for time in times:
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
-                constraint = constraint_name + constraint[:-3] + " <= 1"
+                constraint = constraint_name + constraint[:-3] + " <= 1;"
             if last == 0:
-                constraint = constraint_name + constraint + " <= 1"
+                constraint = constraint_name + constraint + " <= 1;"
             print(constraint)
         gate_count += 1
     time_count += 1
@@ -135,7 +135,7 @@ for time in times:
     flight_count = 0
     for Xi in Xijs:
         entry = False
-        constraint = 'Flight assigned to gate at ' + str(round(time,2)) + ': '
+        constraint = 'Flight_assigned_to_gate_at_' + str(round(time,2)) + ': '
         flag = 0
         while flag < len(Xi):
             if flag == 0 and ait[flight_count][time_count]>0:
@@ -147,7 +147,7 @@ for time in times:
             flag += 1
         flight_count += 1
         if entry:
-            print(constraint+' = 1')
+            print(constraint+' == 1;')
     time_count += 1
 print()
 
