@@ -8,6 +8,9 @@ import numpy as np
 import math
 import sys
 
+#i = flight number
+#j = gate number
+
 #define flights
 Flights = np.array([1,2,3,4])
 Flights_arrival = np.array([10,10,10,10])
@@ -18,7 +21,7 @@ Flights_PAX = np.array([100,200,300,400,])
 #define gates
 Gates = np.array([1,2,3,4])
 Gates_class = np.array([4,4,4,4])
-Gates_distance = np.array([100,200,300,400])
+Gates_distance = np.array([1000,2000,3000,4000])
 
 #Check input data for errors
 Stop = False
@@ -113,6 +116,7 @@ for time in times:
             print(constraint)
         gate_count += 1
     time_count += 1
+print()
 
 #Write constraint that each flight is assigned to one gate at time t
 time_count = 0
@@ -134,4 +138,22 @@ for time in times:
         if entry:
             print(constraint+' = 1')
     time_count += 1
+print()
+
+#Write objective function:
+objective = 'Objective: '
+Xicount = 0
+while Xicount < len(Xijs):
+    PAXobjective = Flights_PAX[Xicount]
+    Xi = Xijs[Xicount]
+    Xijcount = 0
+    while Xijcount < len(Xi):
+        DistanceObjective = Gates_distance[Xijcount]
+        Xij = Xi[Xijcount]
+        objective += str(PAXobjective) + '*' + str(DistanceObjective) + '*' + str(Xij) + ' + '
+        Xijcount += 1
+    Xicount += 1
+print()
+print(objective)   
+    
 
