@@ -147,7 +147,7 @@ for time in times:
             flag += 1
         flight_count += 1
         if entry:
-            print(constraint+' = 1')
+            print(constraint+' == 1')
     time_count += 1
 print()
 
@@ -164,7 +164,8 @@ while Xicount < len(Xijs):
         objective += str(PAXobjective) + '*' + str(DistanceObjective) + '*' + str(Xij) + ' + '
         Xijcount += 1
     Xicount += 1
+objective = objective[:-3]
 print()
-print(objective)   
+print(objective + ';') 
     
 
