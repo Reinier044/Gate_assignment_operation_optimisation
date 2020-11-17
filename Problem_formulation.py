@@ -13,9 +13,10 @@ import sys
 
 #define flights
 Flights = np.array([1,2,3,4])
-Flights_arrival = np.array([10,10,10,10])
+Flights_arrival = np.array([9,9,11,11])
 Flights_class = np.array([4,4,4,4])
 Flights_t_stay = np.array([1,1,1,1])
+Flights_max_tow = np.array([2,2,2,2])
 Flights_PAX = np.array([100,200,300,400,])
 
 #define gates
@@ -73,7 +74,7 @@ while index < len(Flights):
     index += 1
 ait = np.delete(ait,0,axis=0)
 
-#Generate Xij's
+#Generate Xij's and Yik's
 Xijs = []
 for flightnumber in Flights:
     Xi = 'x'+str(flightnumber)
@@ -82,6 +83,20 @@ for flightnumber in Flights:
         Xij = Xi+str(gatenumber)
         Xis = np.append(Xis,Xij)
     Xijs.append(Xis)
+
+#Generate Yik's
+Yik = []
+flightnumber = 0
+while flightnumber < len(Flights):
+    maxtows = Flights_max_tow[flightnumber]
+    tows = 0
+    Yi = np.array([])
+    while tows-1 < maxtows:
+        Yi = np.append(Yi,('y'+str(Flights[flightnumber])+str(tows)))
+        tows += 1
+    Yik.append(Yi)
+    flightnumber += 1
+    
     
 #DEFINE VARIABLES -------------------------------------------------------------
 type_variable = "int+ "
@@ -102,7 +117,8 @@ for time in times:
         entry = False
         flight_count = 0
         constraint = ""
-        constraint_name = "One_Flight_per_gate_for_gate_" + str(gatenumber) + '_at_' + str(round(time,2)) + ": "
+        time = round(time,2)
+        constraint_name = "One_Flight_per_gate_for_gate_" + str(gatenumber) + '_at_' + str(time).replace(".", "_") + ": "
         for flightnumber in Flights: 
             Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
             GateClassReq = Flights_class[flight_count] #Check Gate class needed
@@ -135,7 +151,8 @@ for time in times:
     flight_count = 0
     for Xi in Xijs:
         entry = False
-        constraint = 'Flight_assigned_to_gate_at_' + str(round(time,2)) + ': '
+        time = round(time,2)
+        constraint = 'Flight' + str(Flights[flight_count])+ '_assigned_to_gate_at_' + str(time).replace(".", "_") + ': '
         flag = 0
         while flag < len(Xi):
             if flag == 0 and ait[flight_count][time_count]>0:
@@ -151,6 +168,21 @@ for time in times:
             print(constraint+' == 1;')
     time_count += 1
 print()
+
+#Sum of Yik =1
+Yicount = 0
+for Yi in Yik:
+    constraint = 'Number_tows_Flight'+str(Flights[Yicount]) + ': '
+    for y in Yi:
+        constraint += str(y) +' + '
+    Yicount += 1
+    constraint = constraint[:-3]
+    print(constraint + ' == 1;')    
+    
+
+
+
+
 
 #Write objective function:
 objective = 'Objective: '
