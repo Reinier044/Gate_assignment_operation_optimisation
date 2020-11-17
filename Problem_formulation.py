@@ -80,16 +80,17 @@ for flightnumber in Flights:
         Xis = np.append(Xis,Xij)
     Xijs.append(Xis)
     
-#define variables 
+#DEFINE VARIABLES -------------------------------------------------------------
 type_variable = "int+ "
 
 for flight in range(len(Flights)):
     for gate in range(len(Gates)):
         definition = "dvar " + type_variable + Xijs[(flight)][(gate)]
-        print(definition)
-        
+        print(definition) 
 #Print white line
 print(" ")
+#-----------------------------------------------------------------------------
+
 #Write constraint that each gate has at most one flight at the time. Including compatibility.
 time_count = 0
 for time in times:
