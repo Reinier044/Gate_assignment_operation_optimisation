@@ -9,11 +9,11 @@ import math
 import sys
 
 #define flights
-Flights = np.array([1,2,3,4,5])
-Flights_arrival = np.array([10,10.5,11,11.5,12])
-Flights_class = np.array([4,4,4,4,4])
-Flights_t_stay = np.array([1,1,1,1,1])
-Flights_PAX = np.array([100,200,100,200,200])
+Flights = np.array([1,2,3,4])
+Flights_arrival = np.array([10,10,10,10])
+Flights_class = np.array([4,4,4,4])
+Flights_t_stay = np.array([1,1,1,1])
+Flights_PAX = np.array([100,200,300,400,])
 
 #define gates
 Gates = np.array([1,2,3,4])
