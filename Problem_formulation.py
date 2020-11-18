@@ -13,9 +13,9 @@ import sys
 
 #define flights
 Flights = np.array([1,2,3,4])
-Flights_arrival = np.array([9,9,11,11])
+Flights_arrival = np.array([10,10,11,11])
 Flights_class = np.array([4,4,4,4])
-Flights_t_stay = np.array([1,1,1,1])
+Flights_t_stay = np.array([2,1,1,1])
 Flights_max_tow = np.array([2,2,2,2])
 Flights_PAX = np.array([100,200,300,400,])
 
@@ -51,7 +51,7 @@ if Stop:
 #Generate time interval (in hours) array
 t_start = 9
 t = t_start
-t_int = min(Flights_t_stay,)/2
+t_int = 0.25
 tmax = 13
 times = np.array([])
 while t <= tmax:
@@ -67,14 +67,17 @@ while index < len(Flights):
     a = np.array([])
     for time in times:
         if time > (Arrival-t_int) and time+t_int <= (Departure):
-            a = np.append(a,1)
+            if a.size == 0 or a[-1] == 0:
+                a = np.append(a,1)
+            else:
+                a = np.append(a,a[-1]+1)
         else:
             a = np.append(a,0)
     ait = np.vstack([ait,a])
     index += 1
 ait = np.delete(ait,0,axis=0)
 
-#Generate Xij's and Yik's
+#Generate Xij's
 Xijs = []
 for flightnumber in Flights:
     Xi = 'x'+str(flightnumber)
@@ -84,7 +87,7 @@ for flightnumber in Flights:
         Xis = np.append(Xis,Xij)
     Xijs.append(Xis)
 
-#Generate Yik's
+#Generate base Yik's
 Yik = []
 flightnumber = 0
 while flightnumber < len(Flights):
@@ -96,6 +99,17 @@ while flightnumber < len(Flights):
         tows += 1
     Yik.append(Yi)
     flightnumber += 1
+
+#Generate Yik's for each time iteration
+Yik_t = []
+for time_count in range(len(times)):
+    Yik_temp = []
+    for Yi in Yik:
+        Yi_temp = np.array([])
+        for Y in Yi:
+            Yi_temp = np.append(Yi_temp,(Y+'_'+str(time_count)))
+        Yik_temp.append(Yi_temp)
+    Yik_t.append(Yik_temp)
     
     
 #DEFINE VARIABLES -------------------------------------------------------------
@@ -145,31 +159,83 @@ for time in times:
     time_count += 1
 print()
 
-#Write constraint that each flight is assigned to one gate at time t
+#Master Flight constraint builder:
+
+
+#for each time segment
 time_count = 0
 for time in times:
+    
+    #For each flight
     flight_count = 0
     for Xi in Xijs:
         entry = False
         time = round(time,2)
-        constraint = 'Flight' + str(Flights[flight_count])+ '_assigned_to_gate_at_' + str(time).replace(".", "_") + ': '
-        flag = 0
-        while flag < len(Xi):
-            if flag == 0 and ait[flight_count][time_count]>0:
-                constraint += str(Xi[flag]) 
-                entry = True
-            elif ait[flight_count][time_count]>0:
-                constraint += ' + ' + str(Xi[flag])
-                entry = True
-            flag += 1
+        
+        #check if aircraft is currently present
+        if ait[flight_count][time_count]>0:
+            secondpresence = False
+            thirdpresence = False
+            
+            #Aircraft in second stay time segment
+            if max(ait[flight_count])>=2:
+                secondpresence = True
+            if max(ait[flight_count])>=3:
+                thirdpresence = True
+            
+            #For each tow segment
+            maxtows = Flights_max_tow[flight_count]
+            tows = 0
+            constraint = []
+            old_constraint = 'empty'
+            while tows < maxtows:
+                if tows == 0:
+                    constraint_sub = 'Flight' + str(Flights[flight_count])+ '_tow00_at_' + str(time).replace(".", "h") + ': '
+                    for Xij in Xi:
+                        constraint_sub += Xij + '00 + '
+                    constraint.append(constraint_sub[:-3] + ' - ' + str(Yik[flight_count][0])+'_'+str(time_count) + ' == 0;')
+                    tows +=1
+                if tows == 1 and secondpresence:
+                    constraint_sub = 'Flight' + str(Flights[flight_count])+ '_tow10_at_' + str(time).replace(".", "h") + ': '
+                    for Xij in Xi:
+                        constraint_sub += Xij + '10 + '
+                    constraint.append(constraint_sub[:-3] + ' - ' + str(Yik[flight_count][1])+'_'+str(time_count) + ' == 0;')
+                    if ait[flight_count][time_count]>=2:
+                        constraint_sub = 'Flight' + str(Flights[flight_count])+ '_tow11_at_' + str(time).replace(".", "h") + ': '
+                        for Xij in Xi:
+                            constraint_sub += Xij + '11 + '
+                        constraint.append(constraint_sub[:-3] + ' - ' + str(Yik[flight_count][1])+'_'+str(time_count) + ' == 0;')
+                    tows +=1
+                if tows == 2 and thirdpresence:
+                    constraint_sub = 'Flight' + str(Flights[flight_count])+ '_tow20_at_' + str(time).replace(".", "h") + ': '
+                    for Xij in Xi:
+                        constraint_sub += Xij + '20 + '
+                    constraint.append(constraint_sub[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;')
+                    if ait[flight_count][time_count]>=2:
+                        constraint_sub = 'Flight' + str(Flights[flight_count])+ '_tow21_at_' + str(time).replace(".", "h") + ': '
+                        for Xij in Xi:
+                            constraint_sub += Xij + '21 + '
+                        constraint.append(constraint_sub[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;')
+                    if ait[flight_count][time_count]>=3:
+                        constraint_sub = 'Flight' + str(Flights[flight_count])+ '_tow22_at_' + str(time).replace(".", "h") + ': '
+                        for Xij in Xi:
+                            constraint_sub += Xij + '22 + '
+                        constraint.append(constraint_sub[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;')
+                    tows += 1 
+                if maxtows>2:
+                    print('More Toos is currently not supported')
+                    sys.exit()
+             
+        #Only keep constraints that are true with respect to aircraft presence.
+            for constrain in constraint:
+                print(constrain)
+                
         flight_count += 1
-        if entry:
-
-            print(constraint+' == 1;')
     time_count += 1
 print()
 
-#Sum of Yik =1
+
+#Sum of Yik = 1
 Yicount = 0
 for Yi in Yik:
     constraint = 'Number_tows_Flight'+str(Flights[Yicount]) + ': '
@@ -184,7 +250,7 @@ for Yi in Yik:
 
 
 
-#Write objective function:
+#Write objective function: REVISE!!!!!!!!
 objective = 'Objective: '
 Xicount = 0
 while Xicount < len(Xijs):
