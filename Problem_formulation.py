@@ -120,8 +120,10 @@ for time in times:
         entry = False
         flight_count = 0
         constraint = ""
+        anti_constraint = ''
         time = round(time,2)
         constraint_name = "Occupied_gate" + str(gatenumber) + '_at_' + str(time).replace(".", "h") + ": "
+        anti_constraint_name = "Dont_occupy_gate"+ str(gatenumber) + '_at_' + str(time).replace(".", "h") + ": "
         for flightnumber in Flights: 
             Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
             GateClassReq = Flights_class[flight_count] #Check Gate class needed
@@ -139,6 +141,17 @@ for time in times:
                     last = 0
                 constraint = constraint[:-3]
                 
+                if GateClassReq != GateClassActual:
+                    #Generate Xijkl's for the gate constraints
+                    for tows in range(maxtows+1):
+                        for tow in range(tows+1):
+                            variable = str(Xij)+str(tows)+str(tow)
+                            anti_constraint += variable + " + "
+                            variables.append(variable)
+                    entry = True
+                    last = 0
+                anti_constraint = anti_constraint[:-3]
+                
             elif ait[flight_count][time_count]>0:
                 if GateClassReq == GateClassActual: #Check if flight is compatible with gate
                     for tows in range(maxtows+1):
@@ -148,18 +161,33 @@ for time in times:
                             variables.append(variable)
                     entry = True
                     last = 1
+                    
+                if GateClassReq != GateClassActual: #Check if flight is compatible with gate
+                    for tows in range(maxtows+1):
+                        for tow in range(tows+1):
+                            variable = str(Xij)+str(tows)+str(tow)
+                            anti_constraint += variable + " + "
+                            variables.append(variable)
+                    entry = True
+                    last = 1
             flight_count += 1
         
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
                 all_core_constraints.append((constraint[:-3] + " <= 1;"))
+                all_core_constraints.append((anti_constraint[:-3] + " == 0;"))
                 constraint = constraint_name + constraint + " <= 1;"
+                anti_constraint = anti_constraint_name + anti_constraint + ' == 0;'
                 all_constraints.append(constraint)
+                all_constraints.append(anti_constraint)
             if last == 0:
                 all_core_constraints.append((constraint + " <= 1;"))
+                all_core_constraints.append((anti_constraint + "== 0"))
                 constraint = constraint_name + constraint + " <= 1;"
+                anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
                 all_constraints.append(constraint)
+                all_constraints.append(anti_constraint)
         gate_count += 1
     time_count += 1
 
@@ -306,7 +334,7 @@ c = 0
 while c < len(all_core_constraints):
     c2 = c
     while c2 <= len(all_core_constraints)-deletions:
-        if all_core_constraints[c2]== all_core_constraints[c] and c2 != c:
+        if all_core_constraints[c2] == all_core_constraints[c] and c2 != c:
 #            print('removed: ' + str(c2))
 #            print('original = ' + str(c))
 #            print(c2)
