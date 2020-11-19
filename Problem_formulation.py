@@ -9,12 +9,16 @@ import math
 import sys
 import copy
 
-from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance
+#import from mini_dataset or from dataset_generator
+from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance
 
 #define storage lists
 variables = []
 all_core_constraints = []
 all_constraints = []
+
+#towing cost
+t_cost = 10
 
 
 #Check input data for errors
@@ -45,10 +49,10 @@ if Stop:
     
 
 #Generate time interval (in hours) array
-t_start = 9
+t_start = 10
 t = t_start
 t_int = 0.25
-tmax = 13
+tmax = 12
 times = np.array([])
 while t <= tmax:
     times = np.append(times,t)
@@ -342,7 +346,18 @@ while Xicount < len(Xijs):
     while Xijcount < len(Xi):
         DistanceObjective = Gates_distance[Xijcount]
         Xij = Xi[Xijcount]
-        objective += str(PAXobjective) + '*' + str(DistanceObjective) + '*' + str(Xij) + ' + '
+        Xij_cost = PAXobjective*DistanceObjective
+        maxtows = Flights_max_tow[Xicount]
+        tows = 0
+        while tows < maxtows+1:
+            for tow in range(maxtows+1):
+                if tows == 0:
+                    objective += str(Xij_cost) + '*' + str(Xij) +str(tow)+str(tows)+ ' + '
+                if tows == 1 and tow>0:
+                    objective += str(t_cost)+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+                if tows == 2 and tow>1:
+                    objective += str(t_cost)+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+            tows +=1
         Xijcount += 1
     Xicount += 1
 objective = objective[:-3]
