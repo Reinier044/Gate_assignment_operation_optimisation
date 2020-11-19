@@ -17,6 +17,9 @@ variables = []
 all_core_constraints = []
 all_constraints = []
 
+#towing cost
+t_cost = 10
+
 
 #Check input data for errors
 Stop = False
@@ -46,10 +49,10 @@ if Stop:
     
 
 #Generate time interval (in hours) array
-t_start = 9
+t_start = 10
 t = t_start
 t_int = 0.25
-tmax = 13
+tmax = 12
 times = np.array([])
 while t <= tmax:
     times = np.append(times,t)
@@ -98,15 +101,15 @@ while flightnumber < len(Flights):
     flightnumber += 1
 
 #Generate Yik's for each time iteration
-Yik_t = []
-for time_count in range(len(times)):
-    Yik_temp = []
-    for Yi in Yik:
-        Yi_temp = np.array([])
-        for Y in Yi:
-            Yi_temp = np.append(Yi_temp,(Y+'_'+str(time_count)))
-        Yik_temp.append(Yi_temp)
-    Yik_t.append(Yik_temp)
+Yik_t = Yik
+#for time_count in range(len(times)):
+#    Yik_temp = []
+#    for Yi in Yik:
+#        Yi_temp = np.array([])
+#        for Y in Yi:
+#            Yi_temp = np.append(Yi_temp,(Y+'_'+str(time_count)))
+#        Yik_temp.append(Yi_temp)
+#    Yik_t.append(Yik_temp)
     
     
 #Write constraint that each gate has at most one flight at the time. Including compatibility.
@@ -195,7 +198,7 @@ for time in times:
                         variable = Xij + '00'
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][0])+'_'+str(time_count) + ' == 0;'
+                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][0])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name + core_constraint)
                     tows +=1
@@ -206,7 +209,7 @@ for time in times:
                         variable = Xij + '10'
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+'_'+str(time_count) + ' == 0;'
+                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name + core_constraint)
                     if ait[flight_count][time_count]>=2:
@@ -216,7 +219,7 @@ for time in times:
                             variable = Xij + '11'
                             core_constraint += variable + ' + '
                             variables.append(variable)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+'_'+str(time_count) + ' == 0;' 
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1]) + ' == 0;' 
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows +=1
@@ -227,7 +230,7 @@ for time in times:
                         variable = Xij + '20'
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;'
+                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name+core_constraint)
                     if ait[flight_count][time_count]>=2:
@@ -237,7 +240,7 @@ for time in times:
                             variable = Xij + '21'
                             core_constraint += variable + ' + '
                             variables.append(variable)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;'
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name+core_constraint)
                     if ait[flight_count][time_count]>=3:
@@ -247,7 +250,7 @@ for time in times:
                             variable = Xij + '22'
                             core_constraint += variable + ' + '
                             variables.append(variable)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;'
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
@@ -268,10 +271,9 @@ for Yi in Yik:
     constraint_name = 'Number_tows_Flight'+str(Flights[Yicount]) + ': '
     constraint = ''
     for y in Yi:
-        for time_count in range(len(times)):
-            y_variable = str(y)+'_'+str(time_count)
-            constraint += y_variable +' + '
-            variables.append(y_variable)
+        y_variable = str(y)
+        constraint += y_variable +' + '
+        variables.append(y_variable)
     Yicount += 1
     constraint = constraint[:-3] + ' == 1;'
     all_core_constraints.append(constraint)
@@ -343,7 +345,18 @@ while Xicount < len(Xijs):
     while Xijcount < len(Xi):
         DistanceObjective = Gates_distance[Xijcount]
         Xij = Xi[Xijcount]
-        objective += str(PAXobjective) + '*' + str(DistanceObjective) + '*' + str(Xij) + ' + '
+        Xij_cost = PAXobjective*DistanceObjective
+        maxtows = Flights_max_tow[Xicount]
+        tows = 0
+        while tows < maxtows+1:
+            for tow in range(maxtows+1):
+                if tows == 0:
+                    objective += str(Xij_cost) + '*' + str(Xij) +str(tow)+str(tows)+ ' + '
+                if tows == 1 and tow>0:
+                    objective += str(t_cost)+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+                if tows == 2 and tow>1:
+                    objective += str(t_cost)+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+            tows +=1
         Xijcount += 1
     Xicount += 1
 objective = objective[:-3]
