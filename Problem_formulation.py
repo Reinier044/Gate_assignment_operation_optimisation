@@ -101,15 +101,15 @@ while flightnumber < len(Flights):
     flightnumber += 1
 
 #Generate Yik's for each time iteration
-Yik_t = []
-for time_count in range(len(times)):
-    Yik_temp = []
-    for Yi in Yik:
-        Yi_temp = np.array([])
-        for Y in Yi:
-            Yi_temp = np.append(Yi_temp,(Y+'_'+str(time_count)))
-        Yik_temp.append(Yi_temp)
-    Yik_t.append(Yik_temp)
+Yik_t = Yik
+#for time_count in range(len(times)):
+#    Yik_temp = []
+#    for Yi in Yik:
+#        Yi_temp = np.array([])
+#        for Y in Yi:
+#            Yi_temp = np.append(Yi_temp,(Y+'_'+str(time_count)))
+#        Yik_temp.append(Yi_temp)
+#    Yik_t.append(Yik_temp)
     
     
 #Write constraint that each gate has at most one flight at the time. Including compatibility.
@@ -209,7 +209,7 @@ for time in times:
                         variable = Xij + '10'
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+'_'+str(time_count) + ' == 0;'
+                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name + core_constraint)
                     if ait[flight_count][time_count]>=2:
@@ -219,7 +219,7 @@ for time in times:
                             variable = Xij + '11'
                             core_constraint += variable + ' + '
                             variables.append(variable)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+'_'+str(time_count) + ' == 0;' 
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1]) + ' == 0;' 
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows +=1
@@ -230,7 +230,7 @@ for time in times:
                         variable = Xij + '20'
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;'
+                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name+core_constraint)
                     if ait[flight_count][time_count]>=2:
@@ -240,7 +240,7 @@ for time in times:
                             variable = Xij + '21'
                             core_constraint += variable + ' + '
                             variables.append(variable)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;'
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name+core_constraint)
                     if ait[flight_count][time_count]>=3:
@@ -250,7 +250,7 @@ for time in times:
                             variable = Xij + '22'
                             core_constraint += variable + ' + '
                             variables.append(variable)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+'_'+str(time_count) + ' == 0;'
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
@@ -271,10 +271,9 @@ for Yi in Yik:
     constraint_name = 'Number_tows_Flight'+str(Flights[Yicount]) + ': '
     constraint = ''
     for y in Yi:
-        for time_count in range(len(times)):
-            y_variable = str(y)+'_'+str(time_count)
-            constraint += y_variable +' + '
-            variables.append(y_variable)
+        y_variable = str(y)
+        constraint += y_variable +' + '
+        variables.append(y_variable)
     Yicount += 1
     constraint = constraint[:-3] + ' == 1;'
     all_core_constraints.append(constraint)
