@@ -198,7 +198,7 @@ for time in times:
                         variable = Xij + '00'
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][0])+'_'+str(time_count) + ' == 0;'
+                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][0])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name + core_constraint)
                     tows +=1
