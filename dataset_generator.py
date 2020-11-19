@@ -15,16 +15,16 @@ import random
 # PARAMETERS
 # =============================================================================
 # Flights
-n_flights = 50
+n_flights = 10
 
 # Airport
 open_time = 10
-operating_hours = 5
+operating_hours = 3
 
 # Aircraft
-n_large_aircraft  = 15
-n_medium_aircraft = 15
-n_small_aircraft = 20
+n_large_aircraft  = 3
+n_medium_aircraft = 4
+n_small_aircraft = 3
 
 n_pax_large = 400
 n_pax_medium = 250
@@ -35,14 +35,14 @@ t_stay_medium = [60,180] # [min]
 t_stay_small = [30,120] # [min]
 
 # Gates
-n_gates = 10
+n_gates = 5
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
 
-n_large_gates = 3
-n_medium_gates = 4
-n_small_gates = 3
+n_large_gates = 1
+n_medium_gates = 2
+n_small_gates = 2
 
 # =============================================================================
 # FLIGHT DATA GENERATOR
