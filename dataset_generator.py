@@ -177,7 +177,9 @@ Flights_PAX = np.array(flights_pax)
 Gates = np.arange(n_gates)
 Gates_distance = np.array(gates_distance)
     
-    
+#Flights_max_tow = np.array([2,2,2,2])
+#Flights_class = np.array([3,3,2,3])
+#Gates_class = np.array([2,2,3,3])
     
     
     
