@@ -35,10 +35,14 @@ t_stay_medium = [60,180] # [min]
 t_stay_small = [30,120] # [min]
 
 # Gates
-n_gates = 21
-n_terminals = 2
+n_gates = 10
+n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
+
+n_large_gates = 3
+n_medium_gates = 4
+n_small_gates = 3
 
 # =============================================================================
 # FLIGHT DATA GENERATOR
@@ -71,6 +75,18 @@ while flights_generated < n_flights:
         
     if flights_pax.count(100) == n_small_aircraft:
         aircraft_list = [250,400]
+ 
+# Generate list with flight class
+flights_class = []
+for flight_pax in flights_pax:
+    if flight_pax == 400:
+        flights_class.append(3)
+        
+    if flight_pax == 250:
+        flights_class.append(2)
+        
+    if flight_pax == 100:
+       flights_class.append(1)
         
 # Generate list with arrival times
 arrival_times = []
@@ -105,6 +121,13 @@ for n_pax in flights_pax:
 
     if n_pax == 100:
         flights_t_stay.append(random.randint(t_stay_small[0], t_stay_small[1]) / 60)
+
+# Generate list with maximal amount of tows per aircraft
+flights_max_tow = []
+
+for flight in range(n_flights):
+    # For now only 2 tows
+    flights_max_tow.append(2)    
             
 # =============================================================================
 # GATE DATA GENERATOR
@@ -166,6 +189,35 @@ for terminal_gates in gates_per_terminal_lst:
         
         for dist_gate in dist_gates:
             gates_distance.append(dist_gate)
+
+# Generate list with gate classes
+gates_class = []
+gates_generated = 0
+gates_list = [1,2,3]        
+            
+while gates_generated < n_gates:
+    gate_class = random.choice(gates_list)
+    
+    if gate_class == 3 and gates_class.count(3) < n_large_gates:
+        gates_class.append(gate_class)
+        gates_generated += 1
+    
+    if gate_class == 2 and gates_class.count(2) < n_medium_gates:
+        gates_class.append(gate_class)
+        gates_generated += 1
+        
+    if gate_class == 1 and gates_class.count(1) < n_small_gates:
+        gates_class.append(gate_class)
+        gates_generated += 1
+    
+    if gates_class.count(3) == n_large_gates:
+        gates_list = [1,2]
+        
+    if gates_class.count(2) == n_medium_gates:
+        gates_list = [1,3]
+        
+    if gates_class.count(1) == n_small_gates:
+        gates_list = [2,3]
     
 # =============================================================================
 # LIST TO ARRAY CONVERSION
@@ -174,12 +226,13 @@ Flights = np.arange(n_flights)
 Flights_arrival = np.array(arrival_times)
 Flights_t_stay = np.array(flights_t_stay)
 Flights_PAX = np.array(flights_pax)
+Flights_class = np.array(flights_class)
+Flights_max_tow = np.array(flights_max_tow)
+
 Gates = np.arange(n_gates)
 Gates_distance = np.array(gates_distance)
-    
-#Flights_max_tow = np.array([2,2,2,2])
-#Flights_class = np.array([3,3,2,3])
-#Gates_class = np.array([2,2,3,3])
+Gates_class = np.array(gates_class)
+
     
     
     
