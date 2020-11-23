@@ -10,6 +10,7 @@
 # Imports
 import numpy as np
 import random
+import math
 
 # =============================================================================
 # PARAMETERS
@@ -20,6 +21,8 @@ n_flights = 10
 # Airport
 open_time = 10
 operating_hours = 3
+t_int = 0.25
+inv_t_int = 1/t_int
 
 # Aircraft
 n_large_aircraft  = 3
@@ -30,17 +33,17 @@ n_pax_large = 400
 n_pax_medium = 250
 n_pax_small = 100
 
-t_stay_large = [120,240] # [min]
-t_stay_medium = [60,180] # [min]
-t_stay_small = [30,120] # [min]
+t_stay_large = [t_int*60,t_int*60*4] # [min]
+t_stay_medium = [t_int*60,t_int*60*4] # [min]
+t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 5
+n_gates = 7
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
 
-n_large_gates = 1
+n_large_gates = 3
 n_medium_gates = 2
 n_small_gates = 2
 
@@ -80,10 +83,10 @@ while flights_generated < n_flights:
 flights_class = []
 for flight_pax in flights_pax:
     if flight_pax == 400:
-        flights_class.append(3)
+        flights_class.append(1) #3
         
     if flight_pax == 250:
-        flights_class.append(2)
+        flights_class.append(1) #2
         
     if flight_pax == 100:
        flights_class.append(1)
@@ -99,7 +102,8 @@ while aircraft_landed < n_flights:
     
     for arrival in range(n_arrivals):
         arrival_interval += random.randint(5,int(60/n_arrivals))
-        arrival_times.append((hour + (arrival_interval / 60)))
+        time = math.ceil((hour + (arrival_interval / 60))*inv_t_int)/(inv_t_int)
+        arrival_times.append(time)
         aircraft_landed += 1
         
         # Check if all aircraft already landed
@@ -114,13 +118,13 @@ flights_t_stay = []
     
 for n_pax in flights_pax:
     if n_pax == 400:    
-       flights_t_stay.append(random.randint(t_stay_large[0], t_stay_large[1]) / 60)
+       flights_t_stay.append(round((random.randint(t_stay_large[0], t_stay_large[1]) / 60),2))
     
     if n_pax == 250: 
-        flights_t_stay.append(random.randint(t_stay_medium[0], t_stay_medium[1]) / 60)
+        flights_t_stay.append(round((random.randint(t_stay_medium[0], t_stay_medium[1]) / 60),2))
 
     if n_pax == 100:
-        flights_t_stay.append(random.randint(t_stay_small[0], t_stay_small[1]) / 60)
+        flights_t_stay.append((round((random.randint(t_stay_small[0], t_stay_small[1]) / 60),2)))
 
 # Generate list with maximal amount of tows per aircraft
 flights_max_tow = []
@@ -193,7 +197,7 @@ for terminal_gates in gates_per_terminal_lst:
 # Generate list with gate classes
 gates_class = []
 gates_generated = 0
-gates_list = [1,2,3]        
+gates_list = [1,2,3]     
             
 while gates_generated < n_gates:
     gate_class = random.choice(gates_list)
@@ -218,23 +222,38 @@ while gates_generated < n_gates:
         
     if gates_class.count(1) == n_small_gates:
         gates_list = [2,3]
-    
+
+#to remove classes temporarily REMOVE LATER!!!!!!!
+gates_class_copy = []
+for gate in range(len(gates_class)):
+    gates_class_copy.append(1)
+gates_class = gates_class_copy
 # =============================================================================
 # LIST TO ARRAY CONVERSION
 # =============================================================================
-Flights = np.arange(n_flights)
+text_file = open("dataset.txt", "w")
+
+
+Flights = np.arange(n_flights)+1
 Flights_arrival = np.array(arrival_times)
 Flights_t_stay = np.array(flights_t_stay)
 Flights_PAX = np.array(flights_pax)
 Flights_class = np.array(flights_class)
 Flights_max_tow = np.array(flights_max_tow)
 
-Gates = np.arange(n_gates)
+Gates = np.arange(n_gates)+1
 Gates_distance = np.array(gates_distance)
 Gates_class = np.array(gates_class)
 
-    
-    
+
+# =============================================================================
+# Write to file
+# =============================================================================
+n = text_file.write("Flights = "+ str(list(Flights)) + "\n" + "Flights_arrival = " + str(list(Flights_arrival)) + "\n" + "Flights_t_stay = " + str(list(Flights_t_stay)) + "\n")
+n = text_file.write("Flights_PAX = "+ str(list(Flights_PAX)) + "\n" + "Flights_class = " + str(list(Flights_class)) + "\n" + "Flights_max_tow = " + str(list(Flights_max_tow)) + "\n")
+n = text_file.write("Gates = "+ str(list(Gates)) + "\n" + "Gates_distance = " + str(list(Gates_distance)) + "\n" + "Gates_class = " + str(list(Gates_class)) + "\n") 
+n = text_file.write("open_time = " + str(open_time) + "\n" + "operating_hours = " + str(operating_hours) + "\n" + "t_int = " + str(t_int)) 
+text_file.close()
     
     
     

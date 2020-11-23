@@ -8,9 +8,13 @@ import numpy as np
 import math
 import sys
 import copy
+text_file = open("CPLEX_code.txt", "w")
 
-from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance
-#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance
+#select source:
+
+from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
+#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 #define storage lists
 variables = []
@@ -49,10 +53,12 @@ if Stop:
     
 
 #Generate time interval (in hours) array
-t_start = 10
+t_start = open_time
+t_ends = []
+for i in range(len(Flights_arrival)):
+    t_ends.append((Flights_arrival[i] + Flights_t_stay[i]))
 t = t_start
-t_int = 0.25
-tmax = 12
+tmax = open_time + operating_hours + max(Flights_t_stay)
 times = np.array([])
 while t <= tmax:
     times = np.append(times,t)
@@ -139,8 +145,7 @@ for time in times:
                             variables.append(variable)
                     entry = True
                     last = 0
-                constraint = constraint[:-3]
-                
+                                
                 if GateClassReq != GateClassActual:
                     #Generate Xijkl's for the gate constraints
                     for tows in range(maxtows+1):
@@ -150,6 +155,7 @@ for time in times:
                             variables.append(variable)
                     entry = True
                     last = 0
+                constraint = constraint[:-3]
                 anti_constraint = anti_constraint[:-3]
                 
             elif ait[flight_count][time_count]>0:
@@ -175,24 +181,27 @@ for time in times:
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
-                all_core_constraints.append((constraint[:-3] + " <= 1;"))
-                all_core_constraints.append((anti_constraint[:-3] + " == 0;"))
-                constraint = constraint_name + constraint + " <= 1;"
-                anti_constraint = anti_constraint_name + anti_constraint + ' == 0;'
-                all_constraints.append(constraint)
-                all_constraints.append(anti_constraint)
+                if len(constraint) > 2:
+                    all_core_constraints.append((constraint[:-3] + " <= 1;"))
+                    all_core_constraints.append((anti_constraint[:-3] + " == 0;"))
+                    constraint = constraint_name + constraint[:-3] + " <= 1;"
+                    anti_constraint = anti_constraint_name + anti_constraint[:-3] + ' == 0;'
+                    all_constraints.append(constraint)
+                    all_constraints.append(anti_constraint)
             if last == 0:
-                all_core_constraints.append((constraint + " <= 1;"))
-                all_core_constraints.append((anti_constraint + "== 0"))
-                constraint = constraint_name + constraint + " <= 1;"
-                anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
-                all_constraints.append(constraint)
-                all_constraints.append(anti_constraint)
+                if len(constraint) > 2:
+                    all_core_constraints.append((constraint + " <= 1;"))
+                    all_core_constraints.append((anti_constraint + "== 0"))
+                    constraint = constraint_name + constraint + " <= 1;"
+                    anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
+                    all_constraints.append(constraint)
+                    all_constraints.append(anti_constraint)
         gate_count += 1
     time_count += 1
 
 
-#Master Flight constraint builder:
+#--------------------Master Flight constraint builder--------------------------
+Flight_tow_possibilities = np.zeros(len(Flights))
 #for each time segment
 time_count = 0
 for time in times:
@@ -211,9 +220,10 @@ for time in times:
             #Aircraft in second stay time segment
             if max(ait[flight_count])>=2:
                 secondpresence = True
+                Flight_tow_possibilities[flight_count] = 1
             if max(ait[flight_count])>=3:
                 thirdpresence = True
-            
+                Flight_tow_possibilities[flight_count] = 2
             #For each tow segment
             maxtows = Flights_max_tow[flight_count]
             tows = 0
@@ -292,79 +302,87 @@ for time in times:
     time_count += 1
 
 
-
 #Sum of Yik = 1
 Yicount = 0
 for Yi in Yik:
     constraint_name = 'Number_tows_Flight'+str(Flights[Yicount]) + ': '
     constraint = ''
+    maxy = Flight_tow_possibilities[Yicount]
+    count_y = 0
     for y in Yi:
-        y_variable = str(y)
-        constraint += y_variable +' + '
-        variables.append(y_variable)
+        if count_y < maxy+1:
+            print(y)
+            y_variable = str(y)
+            constraint += y_variable +' + '
+            variables.append(y_variable)
+            count_y +=1
     Yicount += 1
     constraint = constraint[:-3] + ' == 1;'
     all_core_constraints.append(constraint)
     all_constraints.append(constraint_name + constraint) 
     
 
-#DEFINE VARIABLES -------------------------------------------------------------
+#---------------------------Filter duplicate constraints-----------------------
 
-variables = list(dict.fromkeys(variables)) #removes duplicates
-
-type_variable = "int+ "
-
-for variable in variables:
-        definition = "dvar " + type_variable + variable + ";"
-        print(definition) 
-print()
-
-
-#-----------------------------------------------------------------------------
-
-
-#---------------------------Filter duplicates----------------------------------
 original_constraints = copy.copy(all_constraints)
 original_cores = copy.copy(all_core_constraints)
 
-#check for duplicate constraints
-original_removes = []
-deletions = 0
-c = 0
-while c < len(all_core_constraints):
-    c2 = c
-    while c2 <= len(all_core_constraints)-deletions:
-        if all_core_constraints[c2] == all_core_constraints[c] and c2 != c:
-#            print('removed: ' + str(c2))
-#            print('original = ' + str(c))
-#            print(c2)
-#            print(all_core_constraints[c2])
-#            print(all_core_constraints[c2])
-            original_removes.append(c2)
-            deletions +=1
-        c2 += 1
-    c += 1
 
-#Remove the duplicate constraints
-original_removes.sort()
-original_removes = list(dict.fromkeys(original_removes))
-deletions = 0
-for removes in original_removes:
-    del all_core_constraints[(removes-deletions)]
-    del all_constraints[(removes-deletions)]
-    deletions += 1
+
+temp_cores = []
+temp = []
+for i in range(len(all_core_constraints)):
+    if all_core_constraints[i] not in temp_cores:
+        temp_cores.append(all_core_constraints[i])
+        temp.append(all_constraints[i])
+
+
+all_core_constraints = temp_cores
+all_constraints = temp
+
+##check for duplicate constraints
+#original_removes = []
+#deletions = 0
+#c = 0
+#while c < len(all_core_constraints):
+#    c2 = c
+#    while c2 <= len(all_core_constraints)-deletions:
+#        if all_core_constraints[c2] == all_core_constraints[c] and c2 != c:
+##            print('removed: ' + str(c2))
+##            print('original = ' + str(c))
+##            print(c2)
+##            print(all_core_constraints[c2])
+##            print(all_core_constraints[c2])
+#            original_removes.append(c2)
+#            deletions +=1
+#        c2 += 1
+#    c += 1
+#
+##Remove the duplicate constraints
+#original_removes.sort()
+#original_removes = list(dict.fromkeys(original_removes))
+#deletions = 0
+#for removes in original_removes:
+#    del all_core_constraints[(removes-deletions)]
+#    del all_constraints[(removes-deletions)]
+#    deletions += 1
+#
+#
+
     
-#-----------------------------------------------------------------------------
-    
-for constraint in all_constraints:
-    print(constraint)
+#-----------------Write to file------------------------------------------------
 
-           
+#Write variables
+variables = list(dict.fromkeys(variables)) #removes duplicates
+type_variable = "int+ "
+for variable in variables:
+        definition = "dvar " + type_variable + variable + ";"
+        n = text_file.write(definition + "\n")
+n= text_file.write("\n")
 
 
-
-#Write objective function: REVISE!!!!!!!!
-objective = 'Objective: '
+#Write objective function:
+objective = ''
 Xicount = 0
 while Xicount < len(Xijs):
     PAXobjective = Flights_PAX[Xicount]
@@ -388,7 +406,17 @@ while Xicount < len(Xijs):
         Xijcount += 1
     Xicount += 1
 objective = objective[:-3]
-print()
-print(objective + ';') 
+n = text_file.write("minimize" + "\n" + objective + ';' +"\n" + "\n")
+
+
+#Write constraints
+n= text_file.write("subject to { \n")
+for constraint in all_constraints:
+    n = text_file.write(constraint + "\n")
+n= text_file.write("}" + "\n")
+
+
+text_file.close()
     
+
 
