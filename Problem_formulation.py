@@ -12,41 +12,43 @@ text_file = open("CPLEX_code.txt", "w")
 
 #select source:
 
-from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
+#from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
 #from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 #define storage lists
 variables = []
+all_anti_constraints = []
+all_anti_core_constraints = []
 all_core_constraints = []
 all_constraints = []
 
 #towing cost
-t_cost = 10
+t_cost = 0
 
 
 #Check input data for errors
 Stop = False
 if len(Flights) != len(Flights_arrival):
-    print('missing arrival times')
+    print('missing arrival times \n \n \n')
     Stop = True
 if len(Flights) != len(Flights_class):
-    print('missing flight-gate class compatibility')
+    print('missing flight-gate class compatibility \n \n \n')
     Stop = True
 if len(Flights) != len(Flights_t_stay):
-    print('missing flight staying times')
+    print('missing flight staying times \n \n \n')
     Stop = True
 if len(Flights) != len(Flights_PAX):
-    print('missing number of passengers for flights')
+    print('missing number of passengers for flights \n \n \n')
     Stop = True
 if len(Gates) != len(Gates_class):
-    print('missing gate class compatibility')
+    print('missing gate class compatibility \n \n \n')
     Stop = True
 if len(Gates) != len(Gates_distance):
-    print('missing gate distances')
+    print('missing gate distances \n \n \n')
     Stop = True
 if max(Flights_max_tow)>2:
-    print('More Toos is currently not supported')
+    print('More Toos is currently not supported \n \n \n')
     Stop = True
 if Stop:
     sys.exit()
@@ -54,16 +56,18 @@ if Stop:
 
 #Generate time interval (in hours) array
 t_start = open_time
-t_ends = []
+t_dep = []
 for i in range(len(Flights_arrival)):
-    t_ends.append((Flights_arrival[i] + Flights_t_stay[i]))
+    t_dep.append((Flights_arrival[i] + Flights_t_stay[i]))
 t = t_start
-tmax = open_time + operating_hours + max(Flights_t_stay)
+tmax = max(t_dep)
 times = np.array([])
-while t <= tmax:
+while t <= tmax+t_int:
     times = np.append(times,t)
     t += t_int
-    
+print('time intervals created')
+
+   
 #Generate ait
 index = 0
 ait = times
@@ -82,6 +86,7 @@ while index < len(Flights):
     ait = np.vstack([ait,a])
     index += 1
 ait = np.delete(ait,0,axis=0)
+print('ait created')
 
 #Generate Xij's
 Xijs = []
@@ -92,6 +97,7 @@ for flightnumber in Flights:
         Xij = Xi+str(gatenumber)
         Xis = np.append(Xis,Xij)
     Xijs.append(Xis)
+print('Xijs created')
 
 #Generate base Yik's
 Yik = []
@@ -105,18 +111,8 @@ while flightnumber < len(Flights):
         tows += 1
     Yik.append(Yi)
     flightnumber += 1
+print('Yiks created')
 
-#Generate Yik's for each time iteration
-Yik_t = Yik
-#for time_count in range(len(times)):
-#    Yik_temp = []
-#    for Yi in Yik:
-#        Yi_temp = np.array([])
-#        for Y in Yi:
-#            Yi_temp = np.append(Yi_temp,(Y+'_'+str(time_count)))
-#        Yik_temp.append(Yi_temp)
-#    Yik_t.append(Yik_temp)
-    
     
 #Write constraint that each gate has at most one flight at the time. Including compatibility.
 time_count = 0
@@ -136,7 +132,7 @@ for time in times:
             GateClassActual = Gates_class[gate_count]  #Check current gate class
             maxtows = Flights_max_tow[flight_count] #Check how many tows the flight needs
             if flightnumber == Flights[-1] and ait[flight_count][time_count]>0:
-                if GateClassReq == GateClassActual: #Check if flight is compatible with gate
+                if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
                     #Generate Xijkl's for the gate constraints
                     for tows in range(maxtows+1):
                         for tow in range(tows+1):
@@ -146,7 +142,7 @@ for time in times:
                     entry = True
                     last = 0
                                 
-                if GateClassReq != GateClassActual:
+                else:
                     #Generate Xijkl's for the gate constraints
                     for tows in range(maxtows+1):
                         for tow in range(tows+1):
@@ -159,7 +155,7 @@ for time in times:
                 anti_constraint = anti_constraint[:-3]
                 
             elif ait[flight_count][time_count]>0:
-                if GateClassReq == GateClassActual: #Check if flight is compatible with gate
+                if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
                     for tows in range(maxtows+1):
                         for tow in range(tows+1):
                             variable = str(Xij)+str(tows)+str(tow)
@@ -168,7 +164,7 @@ for time in times:
                     entry = True
                     last = 1
                     
-                if GateClassReq != GateClassActual: #Check if flight is compatible with gate
+                else: #Check if flight is compatible with gate
                     for tows in range(maxtows+1):
                         for tow in range(tows+1):
                             variable = str(Xij)+str(tows)+str(tow)
@@ -181,24 +177,33 @@ for time in times:
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
-                if len(constraint) > 2:
+                if len(constraint)>0:
                     all_core_constraints.append((constraint[:-3] + " <= 1;"))
-                    all_core_constraints.append((anti_constraint[:-3] + " == 0;"))
                     constraint = constraint_name + constraint[:-3] + " <= 1;"
+                    all_constraints.append(constraint)
+                if len(anti_constraint)>0:
+                    all_anti_core_constraints.append((anti_constraint[:-3] + " == 0;"))                    
                     anti_constraint = anti_constraint_name + anti_constraint[:-3] + ' == 0;'
-                    all_constraints.append(constraint)
-                    all_constraints.append(anti_constraint)
+                    all_anti_constraints.append(anti_constraint)
             if last == 0:
-                if len(constraint) > 2:
+                if len(constraint)>0:
                     all_core_constraints.append((constraint + " <= 1;"))
-                    all_core_constraints.append((anti_constraint + "== 0"))
                     constraint = constraint_name + constraint + " <= 1;"
-                    anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
                     all_constraints.append(constraint)
-                    all_constraints.append(anti_constraint)
+                if len(anti_constraint)>0:
+                    all_anti_core_constraints.append((anti_constraint + "== 0"))
+                    anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
+                    all_anti_constraints.append(anti_constraint)
+                    
         gate_count += 1
     time_count += 1
+print('Constraints for gates created')
 
+
+for i in range(len(all_anti_constraints)):
+    if len(all_anti_constraints[i])>34:
+        all_constraints.append(all_anti_constraints[i])
+        all_core_constraints.append(all_anti_core_constraints[i])
 
 #--------------------Master Flight constraint builder--------------------------
 Flight_tow_possibilities = np.zeros(len(Flights))
@@ -300,7 +305,7 @@ for time in times:
                               
         flight_count += 1
     time_count += 1
-
+print('Constraints for flights created')
 
 #Sum of Yik = 1
 Yicount = 0
@@ -311,7 +316,6 @@ for Yi in Yik:
     count_y = 0
     for y in Yi:
         if count_y < maxy+1:
-            print(y)
             y_variable = str(y)
             constraint += y_variable +' + '
             variables.append(y_variable)
@@ -320,7 +324,7 @@ for Yi in Yik:
     constraint = constraint[:-3] + ' == 1;'
     all_core_constraints.append(constraint)
     all_constraints.append(constraint_name + constraint) 
-    
+print('Constraints for tows created')   
 
 #---------------------------Filter duplicate constraints-----------------------
 
@@ -339,6 +343,7 @@ for i in range(len(all_core_constraints)):
 
 all_core_constraints = temp_cores
 all_constraints = temp
+print('Duplicates filtered')
 
 ##check for duplicate constraints
 #original_removes = []
@@ -379,6 +384,7 @@ for variable in variables:
         definition = "dvar " + type_variable + variable + ";"
         n = text_file.write(definition + "\n")
 n= text_file.write("\n")
+print('Variables written')
 
 
 #Write objective function:
@@ -407,14 +413,14 @@ while Xicount < len(Xijs):
     Xicount += 1
 objective = objective[:-3]
 n = text_file.write("minimize" + "\n" + objective + ';' +"\n" + "\n")
-
+print('Objective written')
 
 #Write constraints
 n= text_file.write("subject to { \n")
 for constraint in all_constraints:
     n = text_file.write(constraint + "\n")
 n= text_file.write("}" + "\n")
-
+print('Constrains written')
 
 text_file.close()
     
