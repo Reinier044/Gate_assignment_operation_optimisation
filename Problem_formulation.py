@@ -8,13 +8,14 @@ import numpy as np
 import math
 import sys
 import copy
+#from forumlas import towingcheck
 text_file = open("CPLEX_code.txt", "w")
 
 #select source:
 
 #from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
-#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 #define storage lists
 variables = []
@@ -23,8 +24,10 @@ all_anti_core_constraints = []
 all_core_constraints = []
 all_constraints = []
 
+
 #towing cost
 t_cost = 0
+t_anti_cost = 0
 
 
 #Check input data for errors
@@ -116,9 +119,18 @@ print('Yiks created')
     
 #Write constraint that each gate has at most one flight at the time. Including compatibility.
 time_count = 0
+tows_done = np.ones(len(Flights))
+tows_done_next = np.ones(len(Flights))
+tows_done_old = []
 for time in times:
-    gate_count = 0
-    for gatenumber in Gates: 
+    gate_count = 0   
+    for gatenumber in Gates:
+        if gatenumber == Gates[0]:
+            tows_done = tows_done_next
+            tows_done_old.append(copy.deepcopy(tows_done_next))
+        else:
+            tows_done = tows_done_old[-1]
+            
         entry = False
         flight_count = 0
         constraint = ""
@@ -126,53 +138,198 @@ for time in times:
         time = round(time,2)
         constraint_name = "Occupied_gate" + str(gatenumber) + '_at_' + str(time).replace(".", "h") + ": "
         anti_constraint_name = "Dont_occupy_gate"+ str(gatenumber) + '_at_' + str(time).replace(".", "h") + ": "
-        for flightnumber in Flights: 
+
+        for flightnumber in Flights:
+            print((maxtows-(tows_done[(flightnumber-1)])))
             Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
             GateClassReq = Flights_class[flight_count] #Check Gate class needed
             GateClassActual = Gates_class[gate_count]  #Check current gate class
             maxtows = Flights_max_tow[flight_count] #Check how many tows the flight needs
             if flightnumber == Flights[-1] and ait[flight_count][time_count]>0:
-                if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
+                if GateClassReq == GateClassActual: #Check if flight is compatible with gate
                     #Generate Xijkl's for the gate constraints
-                    for tows in range(maxtows+1):
-                        for tow in range(tows+1):
+                    tows = 0
+                    while tows < maxtows+1:
+                        tow = 0
+                        while tow < int(tows_done[flightnumber-1]):
+                            #Filter tows that are impossible
+                            if (maxtows-(tows_done[(flightnumber-1)]))==1:
+                                if tow >0:
+                                    break
+                                
+                            if (maxtows-(tows_done[(flightnumber-1)]))==0:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1 :
+                                    tow += 1 
+                                if tows == 2 and tow == 0:
+                                    tow +=1
+                                if tow > 1:
+                                    break
+                                
+                            if int(maxtows-(tows_done[(flightnumber-1)]))<=-1:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1:
+                                    tow += 1
+                                if tows == 2 and tow != 2:
+                                    while tow < 2:
+                                        tow += 1 
+                                
+                                if tow > 2:
+                                    break 
+                            if tow > tows:
+                                break
                             variable = str(Xij)+str(tows)+str(tow)
                             constraint += variable + " + "
                             variables.append(variable)
+                            tow += 1
+                        tows += 1
                     entry = True
                     last = 0
+                    tows_store = (tows_done[(flightnumber-1)])+ 1
+                    indexes = [flightnumber-1]
+                    for index in indexes:
+                        tows_done_next[index] = tows_store
                                 
                 else:
                     #Generate Xijkl's for the gate constraints
-                    for tows in range(maxtows+1):
-                        for tow in range(tows+1):
+                    tows = 0
+                    while tows < maxtows+1:
+                        tow = 0
+                        while tow < int(tows_done[flightnumber-1]):
+                            #Filter tows that are impossible
+                            if (maxtows-(tows_done[(flightnumber-1)]))==1:
+                                if tow >0:
+                                    break
+                                
+                            if (maxtows-(tows_done[(flightnumber-1)]))==0:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1 :
+                                    tow += 1 
+                                if tows == 2 and tow == 0:
+                                    tow +=1
+                                if tow > 1:
+                                    break
+                                
+                            if int(maxtows-(tows_done[(flightnumber-1)]))<=-1:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1:
+                                    tow += 1
+                                if tows == 2 and tow != 2:
+                                    while tow < 2:
+                                        tow += 1 
+                                if tow > 2:
+                                    break 
+                            if tow > tows:
+                                break
                             variable = str(Xij)+str(tows)+str(tow)
-                            anti_constraint += variable + " + "
+                            constraint += variable + " + "
                             variables.append(variable)
+                            tow += 1
+                        tows += 1
                     entry = True
                     last = 0
+                    tows_store = (tows_done[(flightnumber-1)])
+                    indexes = [flightnumber-1]
+                    for index in indexes:
+                        tows_done_next[index] = tows_store + 1
                 constraint = constraint[:-3]
                 anti_constraint = anti_constraint[:-3]
                 
             elif ait[flight_count][time_count]>0:
                 if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
-                    for tows in range(maxtows+1):
-                        for tow in range(tows+1):
+                    tows = 0
+                    while tows < maxtows+1:
+                        tow = 0
+                        while tow < int(tows_done[flightnumber-1]):
+                            #Filter tows that have already been done
+                            if (maxtows-(tows_done[(flightnumber-1)]))==1:
+                                if tow >0:
+                                    break
+                                
+                            if (maxtows-(tows_done[(flightnumber-1)]))==0:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1 :
+                                    tow += 1 
+                                if tows == 2 and tow == 0:
+                                    tow +=1
+                                if tow > 1:
+                                    break
+                                
+                            if int(maxtows-(tows_done[(flightnumber-1)]))<=-1:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1:
+                                    tow += 1
+                                if tows == 2 and tow != 2:
+                                    while tow < 2:
+                                        tow += 1  
+                                if tow > 2:
+                                    break 
+                            if tow > tows:
+                                break
                             variable = str(Xij)+str(tows)+str(tow)
                             constraint += variable + " + "
                             variables.append(variable)
+                            tow += 1
+                        tows += 1
                     entry = True
                     last = 1
+                    tows_store = (tows_done[(flightnumber-1)])
+                    indexes = [flightnumber-1]
+                    for index in indexes:
+                        tows_done_next[index] = tows_store + 1
                     
                 else: #Check if flight is compatible with gate
-                    for tows in range(maxtows+1):
-                        for tow in range(tows+1):
+                    tows = 0
+                    while tows < maxtows+1:
+                        tow = 0
+                        while tow < int(tows_done[flightnumber-1]):
+                            #Filter tows that are impossible
+                            if (maxtows-(tows_done[(flightnumber-1)]))==1:
+                                if tow >0:
+                                    break
+                                
+                            if (maxtows-(tows_done[(flightnumber-1)]))==0:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1 :
+                                    tow += 1 
+                                if tows == 2 and tow == 0:
+                                    tow +=1
+                                if tow > 1:
+                                    break
+                                
+                            if int(maxtows-(tows_done[(flightnumber-1)]))<=-1:
+                                if tows == 0 and tow != 0:
+                                    break
+                                if tows == 1 and tow != 1:
+                                    tow += 1
+                                if tows == 2 and tow != 2:
+                                    while tow < 2:
+                                        tow += 1 
+                                if tow > 2:
+                                    break 
+                            if tow > tows:
+                                break
                             variable = str(Xij)+str(tows)+str(tow)
-                            anti_constraint += variable + " + "
+                            constraint += variable + " + "
                             variables.append(variable)
+                            tow += 1
+                        tows += 1
                     entry = True
                     last = 1
+                    tows_store = (tows_done[(flightnumber-1)])
+                    indexes = [flightnumber-1]
+                    for index in indexes:
+                        tows_done_next[index] = tows_store + 1
+                          
             flight_count += 1
+          
         
         if entry:
             #Arithmatic in order to get the code right.
@@ -193,8 +350,8 @@ for time in times:
                 if len(anti_constraint)>0:
                     all_anti_core_constraints.append((anti_constraint + "== 0"))
                     anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
-                    all_anti_constraints.append(anti_constraint)
-                    
+                    all_anti_constraints.append(anti_constraint)            
+
         gate_count += 1
     time_count += 1
 print('Constraints for gates created')
@@ -331,8 +488,6 @@ print('Constraints for tows created')
 original_constraints = copy.copy(all_constraints)
 original_cores = copy.copy(all_core_constraints)
 
-
-
 temp_cores = []
 temp = []
 for i in range(len(all_core_constraints)):
@@ -345,36 +500,7 @@ all_core_constraints = temp_cores
 all_constraints = temp
 print('Duplicates filtered')
 
-##check for duplicate constraints
-#original_removes = []
-#deletions = 0
-#c = 0
-#while c < len(all_core_constraints):
-#    c2 = c
-#    while c2 <= len(all_core_constraints)-deletions:
-#        if all_core_constraints[c2] == all_core_constraints[c] and c2 != c:
-##            print('removed: ' + str(c2))
-##            print('original = ' + str(c))
-##            print(c2)
-##            print(all_core_constraints[c2])
-##            print(all_core_constraints[c2])
-#            original_removes.append(c2)
-#            deletions +=1
-#        c2 += 1
-#    c += 1
-#
-##Remove the duplicate constraints
-#original_removes.sort()
-#original_removes = list(dict.fromkeys(original_removes))
-#deletions = 0
-#for removes in original_removes:
-#    del all_core_constraints[(removes-deletions)]
-#    del all_constraints[(removes-deletions)]
-#    deletions += 1
-#
-#
 
-    
 #-----------------Write to file------------------------------------------------
 
 #Write variables
@@ -403,14 +529,23 @@ while Xicount < len(Xijs):
         while tows < maxtows+1:
             for tow in range(maxtows+1):
                 if tows == 0:
-                    objective += str(Xij_cost) + '*' + str(Xij) +str(tow)+str(tows)+ ' + '
+                    if tow == 0:
+                        objective += str(int(Xij_cost)) + '*' + str(Xij) +str(tow)+str(tows)+ ' + ' 
+                    if  tow >=1:
+                        objective += str(int(Xij_cost/3))+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
                 if tows == 1 and tow>0:
-                    objective += str(t_cost)+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+                    if tow == 1:
+                        objective += str(int(2*(Xij_cost)/3))+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
                 if tows == 2 and tow>1:
-                    objective += str(t_cost)+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+                    if tow == 2:
+                        objective += str(int(2*(Xij_cost)/3))+ '*' + str(Xij) + str(tow)+str(tows) + ' + ' 
             tows +=1
         Xijcount += 1
     Xicount += 1
+    
+for Yi in Yik:
+    objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " + str(t_cost)+'*' + str(Yi[2]) + " + "
+        
 objective = objective[:-3]
 n = text_file.write("minimize" + "\n" + objective + ';' +"\n" + "\n")
 print('Objective written')
