@@ -5,7 +5,7 @@ from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Fl
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 import numpy as np
 import plotly.express as px
-
+import matplotlib.patches as mpatches
 
 # =============================================================================
 # READ SOLUTION FILE
@@ -86,15 +86,22 @@ for flight in range(len(Flights)):
                         temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'order':int(true_solution[i][6])}, index=[0])
                         solution_df = solution_df.append(temp_df,ignore_index=True)
 
-# Test data set
+
+
+## Test data set
 #solution_df = pd.DataFrame([{'flight_number':1,'gate_number':1,'start':10,'end':11,'order':0},
+#                           {'flight_number':2,'gate_number':4,'start':10.2,'end':11.2,'order':2},
 #                           {'flight_number':2,'gate_number':3,'start':10.2,'end':11.2,'order':0},
 #                           {'flight_number':2,'gate_number':2,'start':10.2,'end':11.2,'order':1},
-#                           {'flight_number':3,'gate_number':3,'start':10.5,'end':11.5,'order':0}])
+#                           {'flight_number':3,'gate_number':3,'start':10.5,'end':11.5,'order':0},
+#                           {'flight_number':3,'gate_number':5,'start':10.5,'end':11.5,'order':1},
+#                           {'flight_number':4,'gate_number':2,'start':10.9,'end':11.9,'order':0},
+#                           {'flight_number':5,'gate_number':3,'start':11.2,'end':12.2,'order':0}])
 
 
 # Update start and end time for stays at gates
 for i in range(len(solution_df)):
+    
     if solution_df['order'][i] == 0:
         
         for j in range(len(solution_df)):
@@ -104,41 +111,75 @@ for i in range(len(solution_df)):
         for k in range(len(solution_df)):
             if solution_df['order'][k] == 1 and solution_df['flight_number'][i] == solution_df['flight_number'][k] :
                solution_df.loc[k,'start'] = solution_df['end'][i]
-               
+    
+    elif solution_df['order'][i] == 1:
+        
+        for j in range(len(solution_df)):
+            if solution_df['gate_number'][i] == solution_df['gate_number'][j] and solution_df['end'][i] > solution_df['start'][j] and solution_df['flight_number'][i] != solution_df['flight_number'][j] and solution_df['start'][i] < solution_df['start'][j]:
+                solution_df.loc[i,'end'] = solution_df['start'][j]
             
-# solution_df['start'][j]=============================================================================
+        for k in range(len(solution_df)):
+            if solution_df['order'][k] == 2 and solution_df['flight_number'][i] == solution_df['flight_number'][k] :
+               solution_df.loc[k,'start'] = solution_df['end'][i]
+            
+# =============================================================================
 # PLOT DATA
 # =============================================================================
-#fig = px.timeline(solution_df, x_start="start", x_end="end", y="gate_number")
-#fig.update_yaxes(autorange="reversed") # otherwise tasks are listed from the bottom up
-#fig.show()
 
-#for i in range(len(Flights)):
-#    gate = 0
-#    for j in range(len(Gates)):
-#        if solution_matrix[i, j] == 1:
-#            gate = j
-#            
-#            if (Flights[i] % 2) == 0:  
-#               color = "BLUE"
-#            elif (Flights[i] % 3) == 0:  
-#               color = "RED"
-#            else:  
-#               color = "ORANGE"  
-#            
-#            break 
-#            
-#
-#    plt.broken_barh([(Flights_arrival[i], Flights_t_stay[i])], (gate - 0.45 + 1, 0.9), color=color)
-#
-#
-#plt.yticks(np.array([(x + 1) for x in range(len(Gates))]))
-#xticks = np.linspace(0, 24 * 60, 24 * 60 / 60 + 1)
-#plt.xticks(xticks, [("{:02d}:{:02d}".format(int(x[0]), int(x[1]))) for x in [(x // 60, x % 60) for x in xticks]])
-#plt.ylabel("Bay #")
-#plt.xlabel("Time [HH:MM]")
-#plt.tight_layout()
-#plt.grid()
+# SETUP CHART
+# Declaring a figure "gnt" 
+fig, gnt = plt.subplots() 
+  
+# Setting Y-axis limits 
+gnt.set_ylim(0, (len(Gates)) + 1) 
+  
+# Setting X-axis limits 
+gnt.set_xlim(open_time, (open_time + operating_hours + 1)) 
+  
+# Setting Chart title
+gnt.set_title('Gate schedule')
+
+# Setting labels for x-axis and y-axis 
+gnt.set_xlabel('Time') 
+gnt.set_ylabel('Gate') 
+  
+# Set legend
+small_label = mpatches.Patch(color='Red', label='Small aircraft')
+medium_label = mpatches.Patch(color='Blue', label='Medium aircraft')
+large_label = mpatches.Patch(color='Orange', label='Large aircraft')
+
+gnt.legend(handles=[small_label,medium_label,large_label])
+
+# Setting ticks on y-axis and x-axis
+gnt.set_yticks(Gates) 
+gnt.set_xticks(np.arange(open_time,(open_time + operating_hours + 1), 1))
+
+# Labelling tickes of y-axis 
+gnt.set_yticklabels(np.asarray(Gates, dtype="<U16", order='C')) 
+  
+# Setting graph attribute 
+gnt.grid(True) 
+
+# PLOT SCHEDULE
+for i in range(len(solution_df)):
+
+    # Set color based on capacity of aircraft
+    if Flights_class[solution_df['flight_number'][i] - 1] == 1:
+        color = 'Red'
+        label = 'Small aircraft'
+    
+    elif Flights_class[solution_df['flight_number'][i] - 1] == 2:
+        color = 'Blue'
+        label = 'Medium aircraft'
+        
+    elif Flights_class[solution_df['flight_number'][i] - 1] == 3:
+        color = 'Orange'
+        label = 'Large aircraft'
+    
+    plt.broken_barh([(solution_df['start'][i] + 0.03, solution_df['end'][i] - solution_df['start'][i] - 0.03,)], (solution_df['gate_number'][i] - 0.45, 0.9), color=color, label=label)
+
+#gnt.legend()
+
 
 # =============================================================================
 # NOT USED CODE
@@ -183,3 +224,30 @@ for i in range(len(solution_df)):
 #        Xij = Xi+str(gatenumber)
 #        Xis = np.append(Xis,Xij)
 #    Xijs.append(Xis)
+
+#for i in range(len(Flights)):
+#    gate = 0
+#    for j in range(len(Gates)):
+#        if solution_matrix[i, j] == 1:
+#            gate = j
+#            
+#            if (Flights[i] % 2) == 0:  
+#               color = "BLUE"
+#            elif (Flights[i] % 3) == 0:  
+#               color = "RED"
+#            else:  
+#               color = "ORANGE"  
+#            
+#            break 
+#            
+#
+#    plt.broken_barh([(Flights_arrival[i], Flights_t_stay[i])], (gate - 0.45 + 1, 0.9), color=color)
+#
+#
+#plt.yticks(np.array([(x + 1) for x in range(len(Gates))]))
+#xticks = np.linspace(0, 24 * 60, 24 * 60 / 60 + 1)
+#plt.xticks(xticks, [("{:02d}:{:02d}".format(int(x[0]), int(x[1]))) for x in [(x // 60, x % 60) for x in xticks]])
+#plt.ylabel("Bay #")
+#plt.xlabel("Time [HH:MM]")
+#plt.tight_layout()
+#plt.grid()
