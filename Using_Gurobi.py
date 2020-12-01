@@ -5,9 +5,9 @@ import sys
 import copy
 
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
-#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 
 #define storage lists
@@ -648,6 +648,7 @@ for time in times:
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
                 tows += 1  
+
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:
@@ -816,7 +817,9 @@ if status != GRB.Status.OPTIMAL:
         print('Optimization was stopped with status %d' % status)
     
 
-print (model.display())
+
+# print (model.display())
+
 print("------------------------------------------------")
 for var in model.getVars():
     if var.x ==1:
