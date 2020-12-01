@@ -17,7 +17,7 @@ import sys
 # PARAMETERS
 # ============================================================================
 # Flights
-n_flights = 20
+n_flights = 12
 
 # Airport
 open_time = 8
@@ -47,9 +47,9 @@ elif printed == 0:
     
 
 # Aircraft
-n_large_aircraft  = 0.2*n_flights
-n_medium_aircraft = 0.3*n_flights
-n_small_aircraft = 0.5*n_flights
+n_large_aircraft  = int(0.2*n_flights)
+n_medium_aircraft = int(0.3*n_flights)
+n_small_aircraft = n_flights - n_large_aircraft - n_medium_aircraft
 
 n_pax_large = 400
 n_pax_medium = 250
@@ -60,14 +60,14 @@ t_stay_medium = [t_int*60,t_int*60*8] # [min]
 t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 7  
+n_gates = 11  
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
 
-n_large_gates = 2
-n_medium_gates = 2
-n_small_gates = 3
+n_large_gates = 0.3 * n_gates
+n_medium_gates = 0.4 * n_gates
+n_small_gates = n_gates - n_large_gates - n_medium_gates
 
 #Check input data for errors
 Stop = False
