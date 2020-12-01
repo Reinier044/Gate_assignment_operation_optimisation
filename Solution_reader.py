@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 import numpy as np
 import plotly.express as px
@@ -62,6 +62,7 @@ for flight in range(len(Flights)):
                         solution_matrix[flight][gate] = 1
 
                         # Append to dataframe
+                        print(true_solution[i], len(true_solution[i]))
                         temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'order':int(true_solution[i][5])}, index=[0])
                         solution_df = solution_df.append(temp_df,ignore_index=True)
                         

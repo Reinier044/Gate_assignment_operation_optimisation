@@ -17,7 +17,7 @@ import sys
 # PARAMETERS
 # ============================================================================
 # Flights
-n_flights = 12
+n_flights = 25
 
 # Airport
 open_time = 8
@@ -60,7 +60,7 @@ t_stay_medium = [t_int*60,t_int*60*8] # [min]
 t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 11  
+n_gates = 8  
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
