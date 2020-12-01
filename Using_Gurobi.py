@@ -599,7 +599,8 @@ for time in times:
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
-                  
+                    
+            print(variable, time)
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:
@@ -759,8 +760,12 @@ if status != GRB.Status.OPTIMAL:
     elif status != GRB.Status.INF_OR_UNBD:
         print('Optimization was stopped with status %d' % status)
     
+<<<<<<< Updated upstream
 
 print (model.display())
+=======
+# print (model.display())
+>>>>>>> Stashed changes
 print("------------------------------------------------")
 for var in model.getVars():
     if var.x ==1:
