@@ -5,8 +5,8 @@ import sys
 import copy
 
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
+from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
 
 #define storage lists
 variables = []
@@ -16,10 +16,10 @@ all_core_constraints = []
 all_constraints = []
 
 text_file = open("gurobi_test.txt", "w")
-model = Model("Wyndor Glass")
+model = Model("Gate Assignment")
 
 #towing cost
-t_cost = 10
+t_cost = 100000
 t_anti_cost = 0
 
 
@@ -746,6 +746,6 @@ if status != GRB.Status.OPTIMAL:
 print (model.display())
 print("------------------------------------------------")
 for var in model.getVars():
-    if var.x ==1:
+    if var.x == 1:
         print(var.varName, " = ", var.x)
 print ("Objective Function =", model.objVal/1.0)

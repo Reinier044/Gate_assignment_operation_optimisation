@@ -15,12 +15,12 @@ import sys
 
 # =============================================================================
 # PARAMETERS
-# =============================================================================
+# ============================================================================
 # Flights
 n_flights = 20
 
 # Airport
-open_time = 0
+open_time = 8
 operating_hours = 2.5
 close_time = open_time+operating_hours
 t_int = 0.25
@@ -47,9 +47,9 @@ elif printed == 0:
     
 
 # Aircraft
-n_large_aircraft  = 4
-n_medium_aircraft = 6
-n_small_aircraft = 10
+n_large_aircraft  = 0.2*n_flights
+n_medium_aircraft = 0.3*n_flights
+n_small_aircraft = 0.5*n_flights
 
 n_pax_large = 400
 n_pax_medium = 250
