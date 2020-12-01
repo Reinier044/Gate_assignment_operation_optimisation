@@ -17,11 +17,13 @@ import sys
 # PARAMETERS
 # ============================================================================
 # Flights
-n_flights = 25
+n_flights = 40
+large_aircraft_percentage = 0.2
+medium_aircraft_percentage = 0.6
 
 # Airport
 open_time = 8
-operating_hours = 2.5
+operating_hours = 6
 close_time = open_time+operating_hours
 t_int = 0.25
 inv_t_int = 1/t_int
@@ -47,8 +49,8 @@ elif printed == 0:
     
 
 # Aircraft
-n_large_aircraft  = int(0.2*n_flights)
-n_medium_aircraft = int(0.3*n_flights)
+n_large_aircraft  = int(large_aircraft_percentage*n_flights)
+n_medium_aircraft = int(medium_aircraft_percentage*n_flights)
 n_small_aircraft = n_flights - n_large_aircraft - n_medium_aircraft
 
 n_pax_large = 400
@@ -60,13 +62,15 @@ t_stay_medium = [t_int*60,t_int*60*8] # [min]
 t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 8  
+n_gates = 13 
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
+large_gate_percentage = 0.2
+medium_gate_percentage = 0.6
 
-n_large_gates = 0.3 * n_gates
-n_medium_gates = 0.4 * n_gates
+n_large_gates = int(large_gate_percentage * n_gates)
+n_medium_gates = int(medium_gate_percentage * n_gates)
 n_small_gates = n_gates - n_large_gates - n_medium_gates
 
 #Check input data for errors
