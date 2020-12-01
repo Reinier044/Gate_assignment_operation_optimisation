@@ -17,12 +17,12 @@ import sys
 # PARAMETERS
 # ============================================================================
 # Flights
-n_flights = 40
+n_flights = 50
 large_aircraft_percentage = 0.2
 medium_aircraft_percentage = 0.6
 
 # Airport
-open_time = 8
+open_time = 7
 operating_hours = 6
 close_time = open_time+operating_hours
 t_int = 0.25
@@ -62,7 +62,7 @@ t_stay_medium = [t_int*60,t_int*60*8] # [min]
 t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 13 
+n_gates = 15 
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
@@ -141,6 +141,7 @@ while aircraft_landed < n_flights:
     for arrival in range(n_arrivals):
         arrival_interval += random.randint(0,int((60*t_int)/n_arrivals))
         time = math.ceil((hour + (arrival_interval / 60))*inv_t_int)/(inv_t_int)
+        time = int(time) + random.choice([0,0.25,0.5,0.75])
         arrival_times.append(time)
         aircraft_landed += 1
         
@@ -171,13 +172,22 @@ flights_t_stay = []
     
 for n_pax in flights_pax:
     if n_pax == 400:    
-       flights_t_stay.append(round((random.randint(t_stay_large[0], t_stay_large[1]) / 60),2))
+        stay_time = int(round((random.randint(t_stay_large[0], t_stay_large[1]) / 60),2)) + random.choice([0,0.25,0.5,0.75])
+        if stay_time < 0.75:
+            stay_time = 0.75
+        flights_t_stay.append(stay_time)
     
     if n_pax == 250: 
-        flights_t_stay.append(round((random.randint(t_stay_medium[0], t_stay_medium[1]) / 60),2))
+        stay_time = int(round((random.randint(t_stay_medium[0], t_stay_medium[1]) / 60),2)) + random.choice([0,0.25,0.5,0.75])
+        if stay_time < 0.75:
+            stay_time = 0.75
+        flights_t_stay.append(stay_time)
 
     if n_pax == 100:
-        flights_t_stay.append((round((random.randint(t_stay_small[0], t_stay_small[1]) / 60),2)))
+        stay_time = int(round((random.randint(t_stay_small[0], t_stay_small[1]) / 60),2)) + random.choice([0,0.25,0.5,0.75])
+        if stay_time < 0.75:
+            stay_time = 0.75
+        flights_t_stay.append(stay_time)
 
 # Generate list with maximal amount of tows per aircraft
 flights_max_tow = []
@@ -276,6 +286,9 @@ while gates_generated < n_gates:
     if gates_class.count(1) == n_small_gates:
         gates_list = [2,3]
 
+
+
+
 #to remove classes temporarily REMOVE LATER!!!!!!!
 #gates_class_copy = []
 #for gate in range(len(gates_class)):
@@ -311,8 +324,34 @@ n = text_file.write("open_time = " + str(open_time) + "\n" + "operating_hours = 
 text_file.close()
     
     
+#check aircraft present lower than gates
+time = open_time
+while time < close_time: 
+    aircraft_present = 0
+    aircraft_present_small = 0
+    aircraft_present_medium = 0
+    aircraft_present_large = 0
+    for flight_index in range(len(Flights)):
+        if Flights_arrival[flight_index] <= time and (Flights_arrival[flight_index] + Flights_t_stay[flight_index]) > time:
+            aircraft_present += 1
+            if Flights_class[flight_index] == 0: 
+                aircraft_present_small += 1
+            elif Flights_class[flight_index] == 1: 
+                aircraft_present_medium += 1
+            elif Flights_class[flight_index] == 0: 
+                aircraft_present_large += 1
+                
+        if aircraft_present > n_gates:
+            print("To many aircraft at: ", time, ". ", aircraft_present, " aircraft on ", n_gates, " gates.")
+        if aircraft_present_small > n_small_gates:
+            print("To many small aircraft at: ", time, ". ", aircraft_present_small, " aircraft on ", n_small_gates, " gates.")
+        if aircraft_present_medium > n_medium_gates:
+            print("To many medium aircraft at: ", time, ". ", aircraft_present_medium, " aircraft on ", n_medium_gates, " gates.")
+        if aircraft_present_large > n_large_gates:
+            print("To many large aircraft at: ", time, ". ", aircraft_present_large, " aircraft on ", n_large_gates, " gates.")
     
-    
+        
+    time += t_int
     
     
     

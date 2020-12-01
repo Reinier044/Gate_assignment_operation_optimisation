@@ -9,6 +9,7 @@ from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Fl
 #from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
 #from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
+
 #define storage lists
 variables = []
 all_anti_constraints = []
@@ -20,7 +21,7 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #towing cost
-t_cost = 100000
+t_cost = 1000
 t_anti_cost = 0
 
 
@@ -129,6 +130,7 @@ time_count = 0
 tows_done = np.ones(len(Flights))
 tows_done_next = np.ones(len(Flights))
 tows_done_old = []
+flight_presence = np.zeros(len(Flights))
 for time in times:
     gate_count = 0   
     for gatenumber in Gates:
@@ -155,7 +157,7 @@ for time in times:
             GateClassActual = Gates_class[gate_count]  #Check current gate class
             maxtows = Flights_max_tow[flight_count] #Check how many tows the flight needs
             if flightnumber == Flights[-1] and ait[flight_count][time_count]>0:
-                if GateClassReq == GateClassActual: #Check if flight is compatible with gate
+                if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
                     #Generate Xijkl's for the gate constraints
                     tows = 0
                     while tows < maxtows+1:
@@ -207,7 +209,8 @@ for time in times:
                     indexes = [flightnumber-1]
                     for index in indexes:
                         tows_done_next[index] = tows_store
-                                
+                
+                #Write constraint that blocks incompatible gate-aircraft combinations                
                 else:
                     #Generate Xijkl's for the gate constraints
                     tows = 0
@@ -248,8 +251,8 @@ for time in times:
                                 all_x_variables.append(variable_var)
                             else:
                                 variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                            constraint += variable + " + "
-                            constraint_var.append(variable_var) #adding all variables for a specific constraint to a list
+                            anti_constraint += variable + " + "
+                            anti_constraint_var.append(variable_var) #adding all variables for a specific constraint to a list
                             variables.append(variable)
                             tow += 1
                         tows += 1
@@ -261,7 +264,9 @@ for time in times:
                         tows_done_next[index] = tows_store + 1
                 constraint = constraint[:-3]
                 anti_constraint = anti_constraint[:-3]
+                flight_presence[flightnumber-1] = flight_presence[flightnumber-1] + 1
                 
+            #For the last Xijkl in the 
             elif ait[flight_count][time_count]>0:
                 if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
                     tows = 0
@@ -314,7 +319,8 @@ for time in times:
                     for index in indexes:
                         tows_done_next[index] = tows_store + 1
                     
-                else: #Check if flight is compatible with gate
+                #Write constraint that blocks incompatible gate-aircraft combinations  
+                else: 
                     tows = 0
                     while tows < maxtows+1:
                         tow = 0
@@ -353,8 +359,8 @@ for time in times:
                                 all_x_variables.append(variable_var)
                             else:
                                 variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                            constraint += variable + " + "
-                            constraint_var.append(variable_var) #adding all variables for a specific constraint to a list
+                            anti_constraint += variable + " + "
+                            anti_constraint_var.append(variable_var)
                             variables.append(variable)
                             tow += 1
                         tows += 1
@@ -364,10 +370,12 @@ for time in times:
                     indexes = [flightnumber-1]
                     for index in indexes:
                         tows_done_next[index] = tows_store + 1
+
                           
             flight_count += 1
           
-        
+        print(constraint)
+        print(anti_constraint)
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
@@ -385,6 +393,10 @@ for time in times:
                     all_anti_core_constraints.append((anti_constraint[:-3] + " == 0;"))                    
                     anti_constraint = anti_constraint_name + anti_constraint[:-3] + ' == 0;'
                     all_anti_constraints.append(anti_constraint)
+                    gurobi_constraint = 0
+                    for var in anti_constraint_var:
+                        gurobi_constraint += var
+                    model.addConstr(gurobi_constraint, "== " , 0, name=anti_constraint_name)
             if last == 0:
                 if len(constraint)>0:
                     all_core_constraints.append((constraint + " <= 1;"))
@@ -398,7 +410,11 @@ for time in times:
                 if len(anti_constraint)>0:
                     all_anti_core_constraints.append((anti_constraint + "== 0"))
                     anti_constraint = anti_constraint_name+ anti_constraint + " == 0;"
-                    all_anti_constraints.append(anti_constraint)            
+                    all_anti_constraints.append(anti_constraint)    
+                    gurobi_constraint = 0
+                    for var in anti_constraint_var:
+                        gurobi_constraint += var
+                    model.addConstr(gurobi_constraint, "== " , 0, name=anti_constraint_name)
 
         gate_count += 1
     time_count += 1
@@ -583,7 +599,8 @@ for time in times:
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
-                  
+                    
+            print(variable, time)
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:
@@ -703,8 +720,8 @@ while Xicount < len(Xijs):
     Xicount += 1
     
 for Yi_var in Yik_var:
-    objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " + str(t_cost)+'*' + str(Yi[2]) + " + "
-    objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] + t_cost * Yi_var[2]
+    objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " + str(2*t_cost)+'*' + str(Yi[2]) + " + "
+    objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
 
 model.setObjective(objective_gurobi, GRB.MINIMIZE)
 objective = objective[:-3]
@@ -717,20 +734,16 @@ n= text_file.write("subject to { \n")
 for constraint in all_constraints:
     n = text_file.write(constraint + "\n")
 n= text_file.write("}" + "\n")
-print('Constrains written')
+print('Constrains written \n')
 
 text_file.close()
     
+
+
+
+
 model.update()
 model.optimize()
-
-text_file = open("Solution.txt", "w")
-for var in model.getVars():
-    if var.x == 1:
-        n = text_file.write(str(var.varName) + " = " + str(var.x) + "\n")
-text_file.close()
-
-
 
 
 status = model.status
@@ -747,9 +760,14 @@ if status != GRB.Status.OPTIMAL:
     elif status != GRB.Status.INF_OR_UNBD:
         print('Optimization was stopped with status %d' % status)
     
+<<<<<<< Updated upstream
+
 print (model.display())
+=======
+# print (model.display())
+>>>>>>> Stashed changes
 print("------------------------------------------------")
 for var in model.getVars():
-    if var.x == 1:
+    if var.x ==1:
         print(var.varName, " = ", var.x)
 print ("Objective Function =", model.objVal/1.0)
