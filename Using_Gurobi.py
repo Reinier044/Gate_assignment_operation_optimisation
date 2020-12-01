@@ -374,8 +374,7 @@ for time in times:
                           
             flight_count += 1
           
-        print(constraint)
-        print(anti_constraint)
+
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
@@ -600,7 +599,6 @@ for time in times:
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
                     
-            print(variable, time)
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:

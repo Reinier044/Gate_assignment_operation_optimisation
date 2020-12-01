@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 # ============================================================================
 # Flights
 n_flights = 60
-large_aircraft_percentage = 0.2
+large_aircraft_percentage = 0.1
 medium_aircraft_percentage = 0.6
 
 # Airport
@@ -67,8 +67,8 @@ n_gates = 17
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
-large_gate_percentage = 0.2
-medium_gate_percentage = 0.7
+large_gate_percentage = 0.3
+medium_gate_percentage = 0.6
 
 n_large_gates = int(large_gate_percentage * n_gates)
 n_medium_gates = int(medium_gate_percentage * n_gates)
@@ -121,7 +121,7 @@ while flights_generated < n_flights:
 flights_class = []
 for flight_pax in flights_pax:
     if flight_pax == 400:
-        flights_class.append(2) #3
+        flights_class.append(3) #3
         
     if flight_pax == 250:
         flights_class.append(2) #2
@@ -261,12 +261,12 @@ for terminal_gates in gates_per_terminal_lst:
 # Generate list with gate classes
 gates_class = []
 gates_generated = 0
-gates_list = [1,2,2]     
+gates_list = [1,2,3]     
             
 while gates_generated < n_gates:
     gate_class = random.choice(gates_list)
     
-    if gate_class == 2 and gates_class.count(3) < n_large_gates:
+    if gate_class == 3 and gates_class.count(3) < n_large_gates:
         gates_class.append(gate_class)
         gates_generated += 1
     
@@ -359,9 +359,9 @@ while time < close_time:
     time += t_int
 
 #This plot shows a histogram of the aircraft in the timeslots
-plt.bar(time_lst, aircraft_present_slot, t_int)
-plt.yticks(np.arange(0,(max(aircraft_present_slot)+1), 1))
-plt.show
+# plt.bar(time_lst, aircraft_present_slot, t_int)
+# plt.yticks(np.arange(0,(max(aircraft_present_slot)+1), 1))
+# plt.show
     
     
     
