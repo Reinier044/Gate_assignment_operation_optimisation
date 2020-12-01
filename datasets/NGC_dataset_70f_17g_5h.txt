@@ -10,5 +10,3 @@ Gates_class = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1]
 open_time = 7
 operating_hours = 5
 t_int = 0.25
-
-average_time_stay = sum(Flights_t_stay)/len(Flights_t_stay)
