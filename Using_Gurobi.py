@@ -760,12 +760,10 @@ if status != GRB.Status.OPTIMAL:
     elif status != GRB.Status.INF_OR_UNBD:
         print('Optimization was stopped with status %d' % status)
     
-<<<<<<< Updated upstream
 
 print (model.display())
-=======
 # print (model.display())
->>>>>>> Stashed changes
+
 print("------------------------------------------------")
 for var in model.getVars():
     if var.x ==1:
