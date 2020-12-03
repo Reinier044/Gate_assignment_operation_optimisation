@@ -21,7 +21,7 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #towing cost
-t_cost = 1000
+t_cost = 21000
 t_anti_cost = 0
 
 
@@ -116,7 +116,8 @@ for flightnumber in Flights:
     Xis = np.array([])
     #Xis_var = np.array([])
     for gatenumber in Gates:
-        Xij = Xi+"_"+str(gatenumber)+"_"
+        Xij = Xi+str(gatenumber)
+        
         #Xij_var = model.addVar(vtype=GRB.INTEGER, name=Xij)
         Xis = np.append(Xis,Xij)
         #Xis_var = np.append(Xis_var, Xij_var)
@@ -134,8 +135,8 @@ while flightnumber < len(Flights):
     Yi = np.array([])
     Yi_var = np.array([])
     while tows-1 < maxtows:
-        Yi = np.append(Yi,('y'+str(Flights[flightnumber])+"_"+str(tows)))
-        Y_var = model.addVar(vtype=GRB.INTEGER, name=('y'+str(Flights[flightnumber])+"_"+str(tows)))
+        Yi = np.append(Yi,('y'+str(Flights[flightnumber])+str(tows)))
+        Y_var = model.addVar(vtype=GRB.INTEGER, name=('y'+str(Flights[flightnumber])+str(tows)))
         Yi_var = np.append(Yi_var, Y_var)
         tows += 1
     Yik.append(Yi)

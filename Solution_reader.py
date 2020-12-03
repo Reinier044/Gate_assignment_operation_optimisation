@@ -109,7 +109,7 @@ for i in range(len(solution_df)):
                 solution_df.loc[i,'end'] = solution_df['start'][j]
             
         for k in range(len(solution_df)):
-            if solution_df['tows'][k] == 1 and solution_df['flight_number'][i] == solution_df['flight_number'][k] :
+            if solution_df['tows'][k] == 1 and solution_df['flight_number'][i] == solution_df['flight_number'][k]:
                solution_df.loc[k,'start'] = solution_df['end'][i]
     
     elif solution_df['tows'][i] == 1:
@@ -119,7 +119,7 @@ for i in range(len(solution_df)):
                 solution_df.loc[i,'end'] = solution_df['start'][j]
             
         for k in range(len(solution_df)):
-            if solution_df['tows'][k] == 2 and solution_df['flight_number'][i] == solution_df['flight_number'][k] :
+            if solution_df['tows'][k] == 2 and solution_df['flight_number'][i] == solution_df['flight_number'][k]:
                solution_df.loc[k,'start'] = solution_df['end'][i]
             
 # =============================================================================
