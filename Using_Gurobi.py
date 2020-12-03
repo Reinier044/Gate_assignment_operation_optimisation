@@ -112,11 +112,18 @@ for it in ait:
 #Xijs_var = []
 Xijs = []
 for flightnumber in Flights:
-    Xi = 'x'+str(flightnumber)
+    if flightnumber < 10:
+        Xi = 'x0'+str(flightnumber)
+    else:
+        Xi = 'x'+str(flightnumber)
     Xis = np.array([])
     #Xis_var = np.array([])
     for gatenumber in Gates:
-        Xij = Xi+str(gatenumber)
+        if gatenumber < 10:
+            Xij = Xi+'0'+str(gatenumber)
+        else:
+            Xij = Xi+str(gatenumber)
+        
         #Xij_var = model.addVar(vtype=GRB.INTEGER, name=Xij)
         Xis = np.append(Xis,Xij)
         #Xis_var = np.append(Xis_var, Xij_var)
