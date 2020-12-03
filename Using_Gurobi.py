@@ -841,3 +841,19 @@ for var in model.getVars():
     if var.x ==1:
         print(var.varName, " = ", var.x)
 print ("Objective Function =", model.objVal/1.0)
+
+
+tow1_times = []
+tow2_times = []
+flight_count = 0
+while flight_count < len(t_tow_1):
+    if t_tow_1[flight_count] >0:
+        tow1_times.append(Flights_arrival[flight_count]+t_tow_1[flight_count]*t_int)
+        
+    if t_tow_2[flight_count] >0:
+        tow2_times.append(Flights_arrival[flight_count]+t_tow_2[flight_count]*t_int)
+    else:
+         tow1_times.append(0)
+         tow2_times.append(0)
+
+    flight_count += 1
