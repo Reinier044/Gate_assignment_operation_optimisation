@@ -285,7 +285,6 @@ for time in times:
                             if tow >= minimum_tow:
                                 tow = minimum_tow -1
                                        
-                            print(tow,minimum_tow)
                             variable = str(Xij)+str(tows)+str(tow)
                             if variable not in all_x_variables_names:
                                 all_x_variables_names.append(variable) #add variable name to list
@@ -647,8 +646,8 @@ for time in times:
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
-
                 tows += 1  
+
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:
@@ -767,9 +766,10 @@ while Xicount < len(Xijs):
         Xijcount += 1
     Xicount += 1
     
-for Yi_var in Yik_var:
+for Yi in Yik:
+    print(len(Yi_var),Yi_var)
     if len(Yi_var)==3:
-        objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
+        objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " + str(2*t_cost) + '*'+str(Yi[2]) + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
     if len(Yi_var)==2:
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
@@ -823,7 +823,7 @@ if status != GRB.Status.OPTIMAL:
     
 
 
-# print (model.display())
+print (model.display())
 
 print("------------------------------------------------")
 for var in model.getVars():
