@@ -801,6 +801,11 @@ text_file.close()
 model.update()
 model.optimize()
 
+text_file = open("Solution.txt", "w")
+for var in model.getVars():
+    if var.x == 1:
+        n = text_file.write(str(var.varName) + " = " + str(var.x) + "\n")
+text_file.close()
 
 status = model.status
 if status != GRB.Status.OPTIMAL:
