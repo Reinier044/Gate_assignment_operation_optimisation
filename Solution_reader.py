@@ -21,7 +21,7 @@ true_solution = []
 
 # If the variable has value 1 then append to the true solution
 for i in range(len(solution)):
-    solution[i] = solution[i].replace(";\n", "")
+    solution[i] = solution[i].replace("\n", "")
     if "= 1" in solution[i]:
         true_solution.append(solution[i])
 
@@ -37,54 +37,94 @@ solution_matrix = np.zeros((len(Flights),len(Gates)))
 
 # Make empty dataframe
 solution_df = pd.DataFrame(columns=['flight_number','gate_number','start','end','tows'])
-# Loop over all flights and gates to contstruct matrix
-for flight in range(len(Flights)):
-    for gate in range(len(Gates)):
-        for i in range(len(true_solution)):
-            
-            # Check how the x value is described
-            # Flight number is smaller than 10 (9 in code)
-            if flight < 9:
-                
-                # Gate number is smaller than 10 (9 in code)
-                if len(true_solution[i]) == 12:
-                    if true_solution[i][0] == "x" and true_solution[i][1] == str(flight+1) and true_solution[i][2] == str(gate+1):
-                        solution_matrix[flight][gate] = 1
-                        
-                        # Append to dataframe
-                        temp_df = pd.DataFrame({'flight_number':flight+1, 'gate_number':gate+1, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][4])}, index=[0])
-                        solution_df = solution_df.append(temp_df,ignore_index=True)
-                        
-                # Gate number is larger than 10        
-                else:
-                    if true_solution[i][0] == "x" and true_solution[i][1] == str(flight+1) and true_solution[i][2:4] == str(gate+1):
-                        solution_matrix[flight][gate] = 1
 
-                        # Append to dataframe
-                        print(true_solution[i], len(true_solution[i]))
-                        temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][5])}, index=[0])
-                        solution_df = solution_df.append(temp_df,ignore_index=True)
-                        
-            # Flight number is larger than 10
-            else:
+# Loop over all flights and gates to contstruct matrix
+for ts in true_solution:
+    x = False
+    to_gate = False
+    to_tows = False
+    n_flight = ''
+    n_gate = ''
+    n_tows = ''
+    
+    # Split solution in: flight, gate and n tows
+    for i in ts:
+        if i == ' ':
+            break
+        
+        if i == 'x':
+            x = True
+            continue
+        
+        if x and not to_gate and i != '_':
+            n_flight += i
+            
+        if x and i == '_' and not to_gate:
+            to_gate = True
+            continue
+            
+        if x and to_gate and not to_tows and i != '_':
+            n_gate += i
+            
+        if x and i == '_' and to_gate:
+            to_tows = True
+            
+        if x and to_gate and to_tows and i != '_':
+            n_tows += i
+        
+    if x:
+        # Append to dataframe
+        temp_df = pd.DataFrame({'flight_number':int(n_flight), 'gate_number':int(n_gate), 'start':Flights_arrival[int(n_flight) - 1], 'end':(Flights_arrival[int(n_flight) - 1] + Flights_t_stay[int(n_flight) - 1]), 'tows':int(n_tows[-1])}, index=[0])
+        solution_df = solution_df.append(temp_df,ignore_index=True)
+
+# # Loop over all flights and gates to contstruct matrix
+# for flight in range(len(Flights)):
+#     for gate in range(len(Gates)):
+#         for i in range(len(true_solution)):
+            
+#             # Check how the x value is described
+#             # Flight number is smaller than 10 (9 in code)
+#             if flight < 9:
                 
-                # Gate number is smaller than 10
-                if len(true_solution[i]) == 13:
-                    if true_solution[i][0] == "x" and true_solution[i][1:3] == str(flight+1) and true_solution[i][3] == str(gate+1):
-                        solution_matrix[flight][gate] = 1
+#                 # Gate number is smaller than 10 (9 in code)
+#                 if len(true_solution[i]) == 12:
+#                     if true_solution[i][0] == "x" and true_solution[i][1] == str(flight+1) and true_solution[i][2] == str(gate+1):
+#                         solution_matrix[flight][gate] = 1
                         
-                        # Append to dataframe
-                        temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][5])}, index=[0])
-                        solution_df = solution_df.append(temp_df,ignore_index=True)
+#                         # Append to dataframe
+#                         temp_df = pd.DataFrame({'flight_number':flight+1, 'gate_number':gate+1, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][4])}, index=[0])
+#                         solution_df = solution_df.append(temp_df,ignore_index=True)
                         
-                # Gate number is larger than 10
-                else:
-                    if true_solution[i][0] == "x" and true_solution[i][1:3] == str(flight+1) and true_solution[i][3:5] == str(gate+1):
-                        solution_matrix[flight][gate] = 1 
+#                 # Gate number is larger than 10        
+#                 else:
+#                     if true_solution[i][0] == "x" and true_solution[i][1] == str(flight+1) and true_solution[i][2:4] == str(gate+1):
+#                         solution_matrix[flight][gate] = 1
+
+#                         # Append to dataframe
+#                         print(true_solution[i], len(true_solution[i]))
+#                         temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][5])}, index=[0])
+#                         solution_df = solution_df.append(temp_df,ignore_index=True)
                         
-                        # Append to dataframe
-                        temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][6])}, index=[0])
-                        solution_df = solution_df.append(temp_df,ignore_index=True)
+#             # Flight number is larger than 10
+#             else:
+                
+#                 # Gate number is smaller than 10
+#                 if len(true_solution[i]) == 13:
+#                     if true_solution[i][0] == "x" and true_solution[i][1:3] == str(flight+1) and true_solution[i][3] == str(gate+1):
+#                         solution_matrix[flight][gate] = 1
+                        
+#                         # Append to dataframe
+#                         temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][5])}, index=[0])
+#                         solution_df = solution_df.append(temp_df,ignore_index=True)
+                        
+#                 # Gate number is larger than 10
+#                 else:
+#                     if true_solution[i][0] == "x" and true_solution[i][1:3] == str(flight+1) and true_solution[i][3:5] == str(gate+1):
+#                         solution_matrix[flight][gate] = 1 
+                        
+#                         # Append to dataframe
+#                         temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][6])}, index=[0])
+#                         solution_df = solution_df.append(temp_df,ignore_index=True)
 
 
 
