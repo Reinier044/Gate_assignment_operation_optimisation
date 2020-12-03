@@ -647,8 +647,8 @@ for time in times:
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
-                tows += 1  
 
+                tows += 1  
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:
