@@ -86,6 +86,28 @@ while index < len(Flights):
 ait = np.delete(ait,0,axis=0)
 print('ait created')
 
+#Lists that define how many intervals should occur before a tow takes place:
+t_tow_1 = []
+t_tow_2 = []
+
+flight_count = 0
+for it in ait:
+    #Redefine max towing times based on staying time
+    if (Flights_t_stay[flight_count])<=0.75:
+        Flights_max_tow[flight_count] = 0
+        t_tow_1.append(0)
+        t_tow_2.append(0)
+    elif (Flights_t_stay[flight_count])<=1.5:
+        Flights_max_tow[flight_count] = 1
+        t_tow_1.append(int(0.5*max(it)))    #tow is halfway staying time
+        t_tow_2.append(int(2*max(it)))      #outside of staying time
+    elif (Flights_t_stay[flight_count])>=1.5:
+        Flights_max_tow[flight_count] = 2
+        t_tow_1.append(int((1/3)*max(it))) #1/3 for (1/2) tows
+        t_tow_2.append(int((2/3)*max(it))) #2/3 for (2/2) tows
+    flight_count += 1
+    
+
 #Generate Xij's
 #Xijs_var = []
 Xijs = []
@@ -130,7 +152,9 @@ time_count = 0
 tows_done = np.ones(len(Flights))
 tows_done_next = np.ones(len(Flights))
 tows_done_old = []
-flight_presence = np.zeros(len(Flights))
+flight_presence = np.zeros(len(Flights)) #list which counts up for each interval aircraft is present
+tow_1_times = np.zeros(len(Flights))    #list with times at which aircraft is towed 1st time
+tow_2_times = np.zeros(len(Flights))    #list with times at which aircraft is towed 2nd time
 for time in times:
     gate_count = 0   
     for gatenumber in Gates:
@@ -151,18 +175,30 @@ for time in times:
         anti_constraint_name = "Dont_occupy_gate"+ str(gatenumber) + '_at_' + str(time).replace(".", "h") + ": "
 
         for flightnumber in Flights:
-            #print((maxtows-(tows_done[(flightnumber-1)])))
+            #store times at which tows are executed
+            if flight_presence[flightnumber-1] == t_int:
+                tow_1_times[(flightnumber-1)] = ((time-t_int)+(t_tow_1[flightnumber-1]*t_int))
+                tow_2_times[(flightnumber-1)] = ((time-t_int)+(t_tow_2[flightnumber-1]*t_int))
+
             Xij = Xijs[(flightnumber -1)][(gatenumber-1)]
             GateClassReq = Flights_class[flight_count] #Check Gate class needed
             GateClassActual = Gates_class[gate_count]  #Check current gate class
             maxtows = Flights_max_tow[flight_count] #Check how many tows the flight needs
+            max_execute_tows = 1
+            if round(flight_presence[flightnumber-1],1) >= t_tow_1[flightnumber-1]*t_int:
+                max_execute_tows += 1
+            if round(flight_presence[flightnumber-1],1) >= t_tow_2[flightnumber-1]*t_int:
+                max_execute_tows += 1
+            minimum_tow = min(int(tows_done[flightnumber-1]),max_execute_tows)
             if flightnumber == Flights[-1] and ait[flight_count][time_count]>0:
+                flight_presence[flightnumber-1] = flight_presence[flightnumber-1] + t_int/len(Gates)  
                 if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
                     #Generate Xijkl's for the gate constraints
                     tows = 0
                     while tows < maxtows+1:
                         tow = 0
-                        while tow < int(tows_done[flightnumber-1]):
+                        while tow < minimum_tow:
+                            
                             #Filter tows that are impossible
                             if (maxtows-(tows_done[(flightnumber-1)]))==1:
                                 if tow >0:
@@ -177,7 +213,7 @@ for time in times:
                                     tow +=1
                                 if tow > 1:
                                     break
-                                
+                                    
                             if int(maxtows-(tows_done[(flightnumber-1)]))<=-1:
                                 if tows == 0 and tow != 0:
                                     break
@@ -186,11 +222,13 @@ for time in times:
                                 if tows == 2 and tow != 2:
                                     while tow < 2:
                                         tow += 1 
-                                
                                 if tow > 2:
                                     break 
                             if tow > tows:
                                 break
+                            if tow >= minimum_tow:
+                                tow = minimum_tow -1
+                                                        
                             variable = str(Xij)+str(tows)+str(tow)
                             if variable not in all_x_variables_names:
                                 all_x_variables_names.append(variable) #add variable name to list
@@ -216,7 +254,7 @@ for time in times:
                     tows = 0
                     while tows < maxtows+1:
                         tow = 0
-                        while tow < int(tows_done[flightnumber-1]):
+                        while tow < minimum_tow:
                             #Filter tows that are impossible
                             if (maxtows-(tows_done[(flightnumber-1)]))==1:
                                 if tow >0:
@@ -244,6 +282,10 @@ for time in times:
                                     break 
                             if tow > tows:
                                 break
+                            if tow >= minimum_tow:
+                                tow = minimum_tow -1
+                                       
+                            print(tow,minimum_tow)
                             variable = str(Xij)+str(tows)+str(tow)
                             if variable not in all_x_variables_names:
                                 all_x_variables_names.append(variable) #add variable name to list
@@ -264,15 +306,15 @@ for time in times:
                         tows_done_next[index] = tows_store + 1
                 constraint = constraint[:-3]
                 anti_constraint = anti_constraint[:-3]
-                flight_presence[flightnumber-1] = flight_presence[flightnumber-1] + 1
                 
-            #For the last Xijkl in the 
+            #For the last Xijkl
             elif ait[flight_count][time_count]>0:
+                flight_presence[flightnumber-1] = flight_presence[flightnumber-1] + t_int/len(Gates)  
                 if GateClassReq <= GateClassActual: #Check if flight is compatible with gate
                     tows = 0
                     while tows < maxtows+1:
                         tow = 0
-                        while tow < int(tows_done[flightnumber-1]):
+                        while tow < minimum_tow:
                             #Filter tows that have already been done
                             if (maxtows-(tows_done[(flightnumber-1)]))==1:
                                 if tow >0:
@@ -295,11 +337,14 @@ for time in times:
                                     tow += 1
                                 if tows == 2 and tow != 2:
                                     while tow < 2:
-                                        tow += 1  
+                                        tow += 1 
                                 if tow > 2:
                                     break 
                             if tow > tows:
                                 break
+                            if tow >= minimum_tow:
+                                tow = minimum_tow -1
+                                       
                             variable = str(Xij)+str(tows)+str(tow)
                             if variable not in all_x_variables_names:
                                 all_x_variables_names.append(variable) #add variable name to list
@@ -324,12 +369,12 @@ for time in times:
                     tows = 0
                     while tows < maxtows+1:
                         tow = 0
-                        while tow < int(tows_done[flightnumber-1]):
+                        while tow < minimum_tow:
                             #Filter tows that are impossible
                             if (maxtows-(tows_done[(flightnumber-1)]))==1:
                                 if tow >0:
                                     break
-                                
+                                                                    
                             if (maxtows-(tows_done[(flightnumber-1)]))==0:
                                 if tows == 0 and tow != 0:
                                     break
@@ -339,7 +384,7 @@ for time in times:
                                     tow +=1
                                 if tow > 1:
                                     break
-                                
+                                                               
                             if int(maxtows-(tows_done[(flightnumber-1)]))<=-1:
                                 if tows == 0 and tow != 0:
                                     break
@@ -352,6 +397,9 @@ for time in times:
                                     break 
                             if tow > tows:
                                 break
+                            if tow >= minimum_tow:
+                                tow = minimum_tow -1
+                                       
                             variable = str(Xij)+str(tows)+str(tow)
                             if variable not in all_x_variables_names:
                                 all_x_variables_names.append(variable) #add variable name to list
@@ -370,11 +418,9 @@ for time in times:
                     indexes = [flightnumber-1]
                     for index in indexes:
                         tows_done_next[index] = tows_store + 1
-
-                          
+                    
             flight_count += 1
           
-
         if entry:
             #Arithmatic in order to get the code right.
             if last == 1:
@@ -414,7 +460,7 @@ for time in times:
                     for var in anti_constraint_var:
                         gurobi_constraint += var
                     model.addConstr(gurobi_constraint, "== " , 0, name=anti_constraint_name)
-
+                    
         gate_count += 1
     time_count += 1
 print('Constraints for gates created')
@@ -437,19 +483,22 @@ for time in times:
     for Xi in Xijs:
         entry = False
         time = round(time,2)
+
         
         #check if aircraft is currently present
         if ait[flight_count][time_count]>0:
             secondpresence = False
             thirdpresence = False
             
+            
             #Aircraft in second stay time segment
-            if max(ait[flight_count])>=2:
+            if max(ait[flight_count])>= (t_tow_1[flight_count] + 1):
                 secondpresence = True
                 Flight_tow_possibilities[flight_count] = 1
-            if max(ait[flight_count])>=3:
+            if max(ait[flight_count])>= (t_tow_2[flight_count] + 1):
                 thirdpresence = True
                 Flight_tow_possibilities[flight_count] = 2
+            
             #For each tow segment
             maxtows = Flights_max_tow[flight_count]
             tows = 0
@@ -503,7 +552,7 @@ for time in times:
                     core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name + core_constraint)
-                    if ait[flight_count][time_count]>=2:
+                    if time >= tow_1_times[flight_count]:
                         constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow11_at_' + str(time).replace(".", "h") + ': '
                         core_constraint = ''
                         constraint_var = []
@@ -550,7 +599,7 @@ for time in times:
                     core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+ ' == 0;'
                     all_core_constraints.append(core_constraint)
                     constraint.append(constraint_name+core_constraint)
-                    if ait[flight_count][time_count]>=2:
+                    if time >= tow_1_times[flight_count]:
                         constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow21_at_' + str(time).replace(".", "h") + ': '
                         core_constraint = ''
                         constraint_var = []
@@ -573,7 +622,7 @@ for time in times:
                         core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name+core_constraint)
-                    if ait[flight_count][time_count]>=3:
+                    if time >= tow_2_times[flight_count]:
                         constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow22_at_' + str(time).replace(".", "h") + ': '
                         core_constraint = ''
                         constraint_var = []
@@ -598,7 +647,8 @@ for time in times:
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
                     tows += 1 
-                    
+
+                tows += 1  
              
         #Only keep constraints that are true with respect to aircraft presence.
             for constrain in constraint:
@@ -718,8 +768,16 @@ while Xicount < len(Xijs):
     Xicount += 1
     
 for Yi_var in Yik_var:
-    objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " + str(2*t_cost)+'*' + str(Yi[2]) + " + "
-    objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
+    if len(Yi_var)==3:
+        objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
+        objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
+    if len(Yi_var)==2:
+        objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
+        objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] 
+    if len(Yi_var)==1:
+        objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " 
+        objective_gurobi += t_anti_cost * Yi_var[0] 
+
 
 model.setObjective(objective_gurobi, GRB.MINIMIZE)
 objective = objective[:-3]

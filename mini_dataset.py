@@ -6,16 +6,16 @@ Created on Thu Nov 19 09:05:28 2020
 """
 import numpy as np
 #define flights
-Flights = np.array([1,2,3,4,5])
-Flights_arrival = np.array([10,10,10,11,11])
-Flights_class = np.array([3,1,2,1,2])
-Flights_t_stay = np.array([1,1,3,1,1])
-Flights_max_tow = np.array([2,2,2,2,2])
-Flights_PAX = np.array([100,200,300,300,300])
+Flights = np.array([1,2,3])
+Flights_arrival = np.array([10,10,10])
+Flights_class = np.array([2,2,2])
+Flights_t_stay = np.array([2,1,1])
+Flights_max_tow = np.array([2,2,2])
+Flights_PAX = np.array([100,200,300])
 
 #define gates
 Gates = np.array([1,2,3])
-Gates_class = np.array([2,2,3])
+Gates_class = np.array([2,2,2])
 Gates_distance = np.array([1000,2000,3000])
 
 #define other parameters
