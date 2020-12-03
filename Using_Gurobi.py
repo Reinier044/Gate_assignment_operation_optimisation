@@ -21,7 +21,7 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #towing cost
-t_cost = 1000
+t_cost = 21000
 t_anti_cost = 0
 
 
@@ -773,22 +773,30 @@ while Xicount < len(Xijs):
         Xijcount += 1
     Xicount += 1
     
+Y_count = 0
 for Yi in Yik:
-    print(len(Yi_var),Yi_var)
-    if len(Yi_var)==3:
-        objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " + str(2*t_cost) + '*'+str(Yi[2]) + " + " 
+    Yi_var = Yik_var[Y_count]
+    if int(Yi[-1][-1])==2:
+        print(Yi[0],Yi[1],Yi[2])
+        objective += str(t_anti_cost) + '*'+Yi[0] + " + " + str(t_cost) + '*'+Yi[1] + " + " + str(2*t_cost) + '*'+Yi[2] + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
-    if len(Yi_var)==2:
+    elif int(Yi[-1][-1])==1:
+        print(Yi[0],Yi[1])
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] 
-    if len(Yi_var)==1:
+    elif int(Yi[-1][-1])==0:
+        print(Yi[0])
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " 
-        objective_gurobi += t_anti_cost * Yi_var[0] 
+        objective_gurobi += t_anti_cost * Yi_var[0]
+    Y_count += 1
+
 
 
 model.setObjective(objective_gurobi, GRB.MINIMIZE)
 objective = objective[:-3]
 n = text_file.write("minimize" + "\n" + objective + ';' +"\n" + "\n")
+
+print(objective)
 
 print('Objective written')
 
@@ -830,7 +838,7 @@ if status != GRB.Status.OPTIMAL:
     
 
 
-print (model.display())
+#print (model.display())
 
 print("------------------------------------------------")
 for var in model.getVars():
