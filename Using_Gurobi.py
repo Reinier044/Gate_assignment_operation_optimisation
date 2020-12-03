@@ -502,13 +502,15 @@ for time in times:
             maxtows = Flights_max_tow[flight_count]
             tows = 0
             constraint = []
-            while tows < maxtows:
+            while tows <= maxtows:
                 if tows == 0:
                     constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow00_at_' + str(time).replace(".", "h") + ': '
                     core_constraint = ''
                     constraint_var = []
                     for Xij in Xi:
                         variable = Xij + '00'
+                        # if Xij == "x3_1_":
+                        #     raise Exception("HELP")
                         if variable not in all_x_variables_names:
                             all_x_variables_names.append(variable) #add variable name to list
                             variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
@@ -518,7 +520,6 @@ for time in times:
                         constraint_var.append(variable_var)
                         core_constraint += variable + ' + '
                         variables.append(variable)
-                    
                     gurobi_constraint = 0
                     for var in constraint_var:
                         gurobi_constraint += var
@@ -546,35 +547,36 @@ for time in times:
                     gurobi_constraint = 0
                     for var in constraint_var:
                         gurobi_constraint += var
-                    gurobi_constraint -= Yik_var[flight_count][1]
-                    model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+ ' == 0;'
-                    all_core_constraints.append(core_constraint)
-                    constraint.append(constraint_name + core_constraint)
-                    if time >= tow_1_times[flight_count]:
-                        constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow11_at_' + str(time).replace(".", "h") + ': '
-                        core_constraint = ''
-                        constraint_var = []
-                        for Xij in Xi:
-                            variable = Xij + '11'
-                            if variable not in all_x_variables_names:
-                                all_x_variables_names.append(variable) #add variable name to list
-                                variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
-                                all_x_variables.append(variable_var)
-                            else:
-                                variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                            constraint_var.append(variable_var)
-                            core_constraint += variable + ' + '
-                            variables.append(variable)
-                        gurobi_constraint = 0
-                        for var in constraint_var:
-                            gurobi_constraint += var
+                    if len(Yik_var[flight_count]) != 1:
                         gurobi_constraint -= Yik_var[flight_count][1]
                         model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1]) + ' == 0;' 
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1])+ ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name + core_constraint)
-                    tows +=1
+                        if time >= tow_1_times[flight_count]:
+                            constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow11_at_' + str(time).replace(".", "h") + ': '
+                            core_constraint = ''
+                            constraint_var = []
+                            for Xij in Xi:
+                                variable = Xij + '11'
+                                if variable not in all_x_variables_names:
+                                    all_x_variables_names.append(variable) #add variable name to list
+                                    variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
+                                    all_x_variables.append(variable_var)
+                                else:
+                                    variable_var = all_x_variables[all_x_variables_names.index(variable)]
+                                constraint_var.append(variable_var)
+                                core_constraint += variable + ' + '
+                                variables.append(variable)
+                            gurobi_constraint = 0
+                            for var in constraint_var:
+                                gurobi_constraint += var
+                            gurobi_constraint -= Yik_var[flight_count][1]
+                            model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
+                            core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][1]) + ' == 0;' 
+                            all_core_constraints.append(core_constraint)
+                            constraint.append(constraint_name + core_constraint)
+                        tows +=1
                 if tows == 2 and thirdpresence:
                     constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow20_at_' + str(time).replace(".", "h") + ': '
                     core_constraint = ''
@@ -593,59 +595,60 @@ for time in times:
                     gurobi_constraint = 0
                     for var in constraint_var:
                         gurobi_constraint += var
-                    gurobi_constraint -= Yik_var[flight_count][2]
-                    model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
-                    core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+ ' == 0;'
-                    all_core_constraints.append(core_constraint)
-                    constraint.append(constraint_name+core_constraint)
-                    if time >= tow_1_times[flight_count]:
-                        constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow21_at_' + str(time).replace(".", "h") + ': '
-                        core_constraint = ''
-                        constraint_var = []
-                        for Xij in Xi:
-                            variable = Xij + '21'
-                            if variable not in all_x_variables_names:
-                                all_x_variables_names.append(variable) #add variable name to list
-                                variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
-                                all_x_variables.append(variable_var)
-                            else:
-                                variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                            constraint_var.append(variable_var)
-                            core_constraint += variable + ' + '
-                            variables.append(variable)
-                        gurobi_constraint = 0
-                        for var in constraint_var:
-                            gurobi_constraint += var
+                    if len(Yik_var[flight_count]) == 3:
                         gurobi_constraint -= Yik_var[flight_count][2]
                         model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
+                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2])+ ' == 0;'
                         all_core_constraints.append(core_constraint)
                         constraint.append(constraint_name+core_constraint)
-                    if time >= tow_2_times[flight_count]:
-                        constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow22_at_' + str(time).replace(".", "h") + ': '
-                        core_constraint = ''
-                        constraint_var = []
-                        for Xij in Xi:
-                            variable = Xij + '22'
-                            if variable not in all_x_variables_names:
-                                all_x_variables_names.append(variable) #add variable name to list
-                                variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
-                                all_x_variables.append(variable_var)
-                            else:
-                                variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                            
-                            constraint_var.append(variable_var)
-                            core_constraint += variable + ' + '
-                            variables.append(variable)
-                        gurobi_constraint = 0
-                        for var in constraint_var:
-                            gurobi_constraint += var
-                        gurobi_constraint -= Yik_var[flight_count][2]
-                        model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
-                        core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
-                        all_core_constraints.append(core_constraint)
-                        constraint.append(constraint_name + core_constraint)
-                    tows += 1 
+                        if time >= tow_1_times[flight_count]:
+                            constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow21_at_' + str(time).replace(".", "h") + ': '
+                            core_constraint = ''
+                            constraint_var = []
+                            for Xij in Xi:
+                                variable = Xij + '21'
+                                if variable not in all_x_variables_names:
+                                    all_x_variables_names.append(variable) #add variable name to list
+                                    variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
+                                    all_x_variables.append(variable_var)
+                                else:
+                                    variable_var = all_x_variables[all_x_variables_names.index(variable)]
+                                constraint_var.append(variable_var)
+                                core_constraint += variable + ' + '
+                                variables.append(variable)
+                            gurobi_constraint = 0
+                            for var in constraint_var:
+                                gurobi_constraint += var
+                            gurobi_constraint -= Yik_var[flight_count][2]
+                            model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
+                            core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
+                            all_core_constraints.append(core_constraint)
+                            constraint.append(constraint_name+core_constraint)
+                        if time >= tow_2_times[flight_count]:
+                            constraint_name = 'Flight' + str(Flights[flight_count])+ '_tow22_at_' + str(time).replace(".", "h") + ': '
+                            core_constraint = ''
+                            constraint_var = []
+                            for Xij in Xi:
+                                variable = Xij + '22'
+                                if variable not in all_x_variables_names:
+                                    all_x_variables_names.append(variable) #add variable name to list
+                                    variable_var = model.addVar(vtype=GRB.INTEGER, name=variable) #create gurobi variable and add to list
+                                    all_x_variables.append(variable_var)
+                                else:
+                                    variable_var = all_x_variables[all_x_variables_names.index(variable)]
+                                
+                                constraint_var.append(variable_var)
+                                core_constraint += variable + ' + '
+                                variables.append(variable)
+                            gurobi_constraint = 0
+                            for var in constraint_var:
+                                gurobi_constraint += var
+                            gurobi_constraint -= Yik_var[flight_count][2]
+                            model.addConstr(gurobi_constraint, "== " , 0, name=constraint_name)
+                            core_constraint = core_constraint[:-3] + ' - ' + str(Yik[flight_count][2]) + ' == 0;'
+                            all_core_constraints.append(core_constraint)
+                            constraint.append(constraint_name + core_constraint)
+                        tows += 1 
                 tows += 1  
 
              
