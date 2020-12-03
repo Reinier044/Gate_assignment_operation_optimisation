@@ -30,7 +30,7 @@ for i in range(len(solution)):
 true_solution.sort()
 
 # =============================================================================
-# GENERATE SOLUTION MATRIX
+# GENERATE SOLUTION MATRIX AND SOLUTION DATAFRAME
 # =============================================================================
 
 # Make empty solution matrix
@@ -113,42 +113,6 @@ for flight in Flights:
                                 break
                         break
                 break
-        
-        
-        
-## Test data set
-#solution_df = pd.DataFrame([{'flight_number':1,'gate_number':1,'start':10,'end':11,'tows':0},
-#                           {'flight_number':2,'gate_number':4,'start':10.2,'end':11.2,'tows':2},
-#                           {'flight_number':2,'gate_number':3,'start':10.2,'end':11.2,'tows':0},
-#                           {'flight_number':2,'gate_number':2,'start':10.2,'end':11.2,'tows':1},
-#                           {'flight_number':3,'gate_number':3,'start':10.5,'end':11.5,'tows':0},
-#                           {'flight_number':3,'gate_number':5,'start':10.5,'end':11.5,'tows':1},
-#                           {'flight_number':4,'gate_number':2,'start':10.9,'end':11.9,'tows':0},
-#                           {'flight_number':5,'gate_number':3,'start':11.2,'end':12.2,'tows':0}])
-
-
-# # Update start and end time for stays at gates
-# for i in range(len(solution_df)):
-    
-#     if solution_df['tows'][i] == 0:
-        
-#         for j in range(len(solution_df)):
-#             if solution_df['gate_number'][i] == solution_df['gate_number'][j] and solution_df['end'][i] > solution_df['start'][j] and solution_df['flight_number'][i] != solution_df['flight_number'][j] and solution_df['start'][i] < solution_df['start'][j]:
-#                 solution_df.loc[i,'end'] = solution_df['start'][j]
-            
-#         for k in range(len(solution_df)):
-#             if solution_df['tows'][k] == 1 and solution_df['flight_number'][i] == solution_df['flight_number'][k]:
-#                solution_df.loc[k,'start'] = solution_df['end'][i]
-    
-#     elif solution_df['tows'][i] == 1:
-        
-#         for j in range(len(solution_df)):
-#             if solution_df['gate_number'][i] == solution_df['gate_number'][j] and solution_df['end'][i] > solution_df['start'][j] and solution_df['flight_number'][i] != solution_df['flight_number'][j] and solution_df['start'][i] < solution_df['start'][j]:
-#                 solution_df.loc[i,'end'] = solution_df['start'][j]
-            
-#         for k in range(len(solution_df)):
-#             if solution_df['tows'][k] == 2 and solution_df['flight_number'][i] == solution_df['flight_number'][k]:
-               # solution_df.loc[k,'start'] = solution_df['end'][i]
             
 # =============================================================================
 # PLOT DATA
@@ -257,3 +221,37 @@ for i in range(len(solution_df)):
 #                         # Append to dataframe
 #                         temp_df = pd.DataFrame({'flight_number':flight, 'gate_number':gate, 'start':Flights_arrival[flight], 'end':(Flights_arrival[flight]+Flights_t_stay[flight]), 'tows':int(true_solution[i][6])}, index=[0])
 #                         solution_df = solution_df.append(temp_df,ignore_index=True)
+
+## Test data set
+#solution_df = pd.DataFrame([{'flight_number':1,'gate_number':1,'start':10,'end':11,'tows':0},
+#                           {'flight_number':2,'gate_number':4,'start':10.2,'end':11.2,'tows':2},
+#                           {'flight_number':2,'gate_number':3,'start':10.2,'end':11.2,'tows':0},
+#                           {'flight_number':2,'gate_number':2,'start':10.2,'end':11.2,'tows':1},
+#                           {'flight_number':3,'gate_number':3,'start':10.5,'end':11.5,'tows':0},
+#                           {'flight_number':3,'gate_number':5,'start':10.5,'end':11.5,'tows':1},
+#                           {'flight_number':4,'gate_number':2,'start':10.9,'end':11.9,'tows':0},
+#                           {'flight_number':5,'gate_number':3,'start':11.2,'end':12.2,'tows':0}])
+
+
+# # Update start and end time for stays at gates
+# for i in range(len(solution_df)):
+    
+#     if solution_df['tows'][i] == 0:
+        
+#         for j in range(len(solution_df)):
+#             if solution_df['gate_number'][i] == solution_df['gate_number'][j] and solution_df['end'][i] > solution_df['start'][j] and solution_df['flight_number'][i] != solution_df['flight_number'][j] and solution_df['start'][i] < solution_df['start'][j]:
+#                 solution_df.loc[i,'end'] = solution_df['start'][j]
+            
+#         for k in range(len(solution_df)):
+#             if solution_df['tows'][k] == 1 and solution_df['flight_number'][i] == solution_df['flight_number'][k]:
+#                solution_df.loc[k,'start'] = solution_df['end'][i]
+    
+#     elif solution_df['tows'][i] == 1:
+        
+#         for j in range(len(solution_df)):
+#             if solution_df['gate_number'][i] == solution_df['gate_number'][j] and solution_df['end'][i] > solution_df['start'][j] and solution_df['flight_number'][i] != solution_df['flight_number'][j] and solution_df['start'][i] < solution_df['start'][j]:
+#                 solution_df.loc[i,'end'] = solution_df['start'][j]
+            
+#         for k in range(len(solution_df)):
+#             if solution_df['tows'][k] == 2 and solution_df['flight_number'][i] == solution_df['flight_number'][k]:
+               # solution_df.loc[k,'start'] = solution_df['end'][i]
