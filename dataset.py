@@ -43,7 +43,7 @@ print("Average staying time: ", average_time_stay)
 print("Number of large aircraft: ", Flights_PAX.count(400))
 print("Number of medium aircraft: ", Flights_PAX.count(250))
 print("Number of small aircraft: ", Flights_PAX.count(100))
-#This plot shows a histogram of the aircraft in the timeslots
-plt.bar(time_lst, aircraft_present_slot, t_int)
-plt.yticks(np.arange(0,(max(aircraft_present_slot)+1), 1))
-plt.show
+# #This plot shows a histogram of the aircraft in the timeslots
+# plt.bar(time_lst, aircraft_present_slot, t_int)
+# plt.yticks(np.arange(0,(max(aircraft_present_slot)+1), 1))
+# plt.show
