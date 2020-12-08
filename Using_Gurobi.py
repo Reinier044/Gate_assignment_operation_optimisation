@@ -48,6 +48,18 @@ if len(Gates) != len(Gates_distance):
 if max(Flights_max_tow)>2:
     print('More Toos is currently not supported \n \n \n')
     Stop = True
+t_arrival = 0
+while t_arrival < len(Flights_arrival):
+    if Flights_arrival[t_arrival] < open_time:
+        Stop = True
+        print("arrival time is before the airfield opens")
+    t_arrival += 1
+previous_flight_number = 0
+for flight_number in range(len(Flights)):
+    if Flights[flight_number] != previous_flight_number + 1:
+        Stop = True
+        print("Aircraft numbering incorrect")
+    previous_flight_number = Flights[flight_number]
 if Stop:
     sys.exit()
     
@@ -773,15 +785,12 @@ Y_count = 0
 for Yi in Yik:
     Yi_var = Yik_var[Y_count]
     if int(Yi[-1][-1])==2:
-        print(Yi[0],Yi[1],Yi[2])
         objective += str(t_anti_cost) + '*'+Yi[0] + " + " + str(t_cost) + '*'+Yi[1] + " + " + str(2*t_cost) + '*'+Yi[2] + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
     elif int(Yi[-1][-1])==1:
-        print(Yi[0],Yi[1])
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] 
     elif int(Yi[-1][-1])==0:
-        print(Yi[0])
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0]
     Y_count += 1
