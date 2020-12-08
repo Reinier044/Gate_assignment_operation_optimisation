@@ -21,7 +21,7 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #towing cost
-t_cost = 1000
+t_cost = 10000
 t_anti_cost = 0
 
 
