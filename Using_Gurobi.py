@@ -4,10 +4,11 @@ import math
 import sys
 import copy
 
+
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
-from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 
 #define storage lists
@@ -20,9 +21,14 @@ all_constraints = []
 text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
-#towing cost
+#Model inputs
 t_cost = 10000
 t_anti_cost = 0
+tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
+tow_2_1 = (1/3) #At which moment during staying time happens the first tow if the aircraft is towed twice
+tow_2_2 = (2/3) #At which moment during staying time happens the second tow if the aircraft is towed twice
+Tow_stay_1 = 0.75 #How many hours does the aircraft stay before one tow can practically take place
+Tow_stay_2 = 1.5 #How many hours does the aircraft stay before two tows can practically take place
 
 
 #Check input data for errors
@@ -52,17 +58,23 @@ t_arrival = 0
 while t_arrival < len(Flights_arrival):
     if Flights_arrival[t_arrival] < open_time:
         Stop = True
-        print("arrival time is before the airfield opens")
+        print("arrival time is before the airfield opens. The airport opens at ", open_time, "\n \n \n")
     t_arrival += 1
 previous_flight_number = 0
 for flight_number in range(len(Flights)):
     if Flights[flight_number] != previous_flight_number + 1:
         Stop = True
-        print("Aircraft numbering incorrect")
+        print("Flight numbering incorrect Please give in the format [1,2,3...n] \n \n \n")
     previous_flight_number = Flights[flight_number]
+previous_gate_number = 0
+for gate_number in range(len(Gates)):
+    if Gates[gate_number] != previous_gate_number + 1:
+        Stop = True
+        print("Gate numbering incorrect. Please give in the format [1,2,3...n] \n \n \n")
+    previous_gate_number = Gates[gate_number]
 if Stop:
     sys.exit()
-    
+print("input data satisfies requirements \n")
 
 #Generate time interval (in hours) array
 t_start = open_time
@@ -105,18 +117,18 @@ t_tow_2 = []
 flight_count = 0
 for it in ait:
     #Redefine max towing times based on staying time
-    if (Flights_t_stay[flight_count])<=0.75:
+    if (Flights_t_stay[flight_count])<=Tow_stay_1:
         Flights_max_tow[flight_count] = 0
         t_tow_1.append(0)
         t_tow_2.append(0)
-    elif (Flights_t_stay[flight_count])<=1.5:
+    elif (Flights_t_stay[flight_count])<=Tow_stay_2:
         Flights_max_tow[flight_count] = 1
-        t_tow_1.append(int(0.5*max(it)))    #tow is halfway staying time
+        t_tow_1.append(int(tow_1_1*max(it)))    #tow is halfway staying time
         t_tow_2.append(int(2*max(it)))      #outside of staying time
-    elif (Flights_t_stay[flight_count])>=1.5:
+    elif (Flights_t_stay[flight_count])>=Tow_stay_2:
         Flights_max_tow[flight_count] = 2
-        t_tow_1.append(int((1/3)*max(it))) #1/3 for (1/2) tows
-        t_tow_2.append(int((2/3)*max(it))) #2/3 for (2/2) tows
+        t_tow_1.append(int(tow_2_1*max(it))) #1/3 for (1/2) tows
+        t_tow_2.append(int(tow_2_2*max(it))) #2/3 for (2/2) tows
     flight_count += 1
     
 
