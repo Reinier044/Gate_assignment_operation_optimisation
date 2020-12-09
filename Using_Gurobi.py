@@ -22,7 +22,7 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #Model inputs
-t_cost = 10000
+t_cost = 0
 t_anti_cost = 0
 tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
 tow_2_1 = (1/3) #At which moment during staying time happens the first tow if the aircraft is towed twice
