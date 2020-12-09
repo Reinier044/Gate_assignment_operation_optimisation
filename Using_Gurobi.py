@@ -22,15 +22,15 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #Model inputs
-t_cost = 10000
+t_cost = 100
 t_anti_cost = 0
 tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
 tow_2_1 = (1/3) #At which moment during staying time happens the first tow if the aircraft is towed twice
 tow_2_2 = (2/3) #At which moment during staying time happens the second tow if the aircraft is towed twice
 Tow_stay_1 = 0.75 #How many hours does the aircraft stay before one tow can practically take place
 Tow_stay_2 = 1.5 #How many hours does the aircraft stay before two tows can practically take place
-deboarding_cost = 1/3 #What is the importance of passenger walking distance when deboarding?
-boarding_cost = 2/3 #What is the importance of passenger walking distance when boarding?
+deboarding_cost = 1/2 #What is the importance of passenger walking distance when deboarding?
+boarding_cost = 1/2 #What is the importance of passenger walking distance when boarding?
 
 
 #Check input data for errors
