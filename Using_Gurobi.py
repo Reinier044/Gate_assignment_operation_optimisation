@@ -4,6 +4,7 @@ import math
 import sys
 import copy
 
+
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
@@ -20,13 +21,21 @@ all_constraints = []
 text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
-#towing cost
-t_cost = 3500
+#Model inputs
+t_cost = 10000
 t_anti_cost = 0
+tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
+tow_2_1 = (1/3) #At which moment during staying time happens the first tow if the aircraft is towed twice
+tow_2_2 = (2/3) #At which moment during staying time happens the second tow if the aircraft is towed twice
+Tow_stay_1 = 0.75 #How many hours does the aircraft stay before one tow can practically take place
+Tow_stay_2 = 1.5 #How many hours does the aircraft stay before two tows can practically take place
+deboarding_cost = 1/3 #What is the importance of passenger walking distance when deboarding?
+boarding_cost = 2/3 #What is the importance of passenger walking distance when boarding?
 
 
 #Check input data for errors
 Stop = False
+print()
 if len(Flights) != len(Flights_arrival):
     print('missing arrival times \n \n \n')
     Stop = True
@@ -48,9 +57,33 @@ if len(Gates) != len(Gates_distance):
 if max(Flights_max_tow)>2:
     print('More Toos is currently not supported \n \n \n')
     Stop = True
+t_arrival = 0
+while t_arrival < len(Flights_arrival):
+    if Flights_arrival[t_arrival] < open_time:
+        Stop = True
+        print("arrival time is before the airfield opens. The airport opens at ", open_time, "\n \n \n")
+    t_arrival += 1
+previous_flight_number = 0
+for flight_number in range(len(Flights)):
+    if Flights[flight_number] != previous_flight_number + 1:
+        Stop = True
+        print("Flight numbering incorrect Please give in the format [1,2,3...n] \n \n \n")
+    previous_flight_number = Flights[flight_number]
+previous_gate_number = 0
+for gate_number in range(len(Gates)):
+    if Gates[gate_number] != previous_gate_number + 1:
+        Stop = True
+        print("Gate numbering incorrect. Please give in the format [1,2,3...n] \n \n \n")
+    previous_gate_number = Gates[gate_number]
+if deboarding_cost + boarding_cost != 1:
+    Stop = True
+    print("Boarding and deboarding costs incorrect. Make sure the sum equals 1. \n \n \n")
+if tow_1_1 > 1 or tow_2_1+tow_2_2 > 1:
+    Stop = True
+    print("Specified towing times are outside of the aircraft staying time. Please revise. \n \n \n")
 if Stop:
     sys.exit()
-    
+print("input data satisfies requirements \n")
 
 #Generate time interval (in hours) array
 t_start = open_time
@@ -93,18 +126,18 @@ t_tow_2 = []
 flight_count = 0
 for it in ait:
     #Redefine max towing times based on staying time
-    if (Flights_t_stay[flight_count])<=0.75:
+    if (Flights_t_stay[flight_count])<=Tow_stay_1:
         Flights_max_tow[flight_count] = 0
         t_tow_1.append(0)
         t_tow_2.append(0)
-    elif (Flights_t_stay[flight_count])<=1.5:
+    elif (Flights_t_stay[flight_count])<=Tow_stay_2:
         Flights_max_tow[flight_count] = 1
-        t_tow_1.append(int(0.5*max(it)))    #tow is halfway staying time
+        t_tow_1.append(int(tow_1_1*max(it)))    #tow is halfway staying time
         t_tow_2.append(int(2*max(it)))      #outside of staying time
-    elif (Flights_t_stay[flight_count])>=1.5:
+    elif (Flights_t_stay[flight_count])>=Tow_stay_2:
         Flights_max_tow[flight_count] = 2
-        t_tow_1.append(int((1/3)*max(it))) #1/3 for (1/2) tows
-        t_tow_2.append(int((2/3)*max(it))) #2/3 for (2/2) tows
+        t_tow_1.append(int(tow_2_1*max(it))) #1/3 for (1/2) tows
+        t_tow_2.append(int(tow_2_2*max(it))) #2/3 for (2/2) tows
     flight_count += 1
     
 
@@ -734,7 +767,7 @@ while Xicount < len(Xijs):
                             variable_var = all_x_variables[all_x_variables_names.index(variable)]
                         objective_gurobi += Xij_cost * variable_var
                     if  tow >=1:
-                        objective += str(int(Xij_cost/3))+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+                        objective += str(int(Xij_cost*(deboarding_cost)))+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
                         variable = str(Xij) +str(tow)+str(tows)
                         if variable not in all_x_variables_names:
                             all_x_variables_names.append(variable) #add variable name to list
@@ -742,10 +775,10 @@ while Xicount < len(Xijs):
                             all_x_variables.append(variable_var)
                         else:
                             variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                        objective_gurobi += (Xij_cost/3) * variable_var
+                        objective_gurobi += (Xij_cost*(deboarding_cost)) * variable_var
                 if tows == 1 and tow>0:
                     if tow == 1:
-                        objective += str(int(2*(Xij_cost)/3))+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
+                        objective += str(int((Xij_cost)*(boarding_cost)))+ '*' + str(Xij) + str(tow)+str(tows) + ' + '
                         variable = str(Xij) +str(tow)+str(tows)
                         if variable not in all_x_variables_names:
                             all_x_variables_names.append(variable) #add variable name to list
@@ -753,10 +786,10 @@ while Xicount < len(Xijs):
                             all_x_variables.append(variable_var)
                         else:
                             variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                        objective_gurobi += (2*Xij_cost/3) * variable_var
+                        objective_gurobi += (Xij_cost*(boarding_cost)) * variable_var
                 if tows == 2 and tow>1:
                     if tow == 2:
-                        objective += str(int(2*(Xij_cost)/3))+ '*' + str(Xij) + str(tow)+str(tows) + ' + ' 
+                        objective += str(int((Xij_cost)*(boarding_cost)))+ '*' + str(Xij) + str(tow)+str(tows) + ' + ' 
                         variable = str(Xij) +str(tow)+str(tows)
                         if variable not in all_x_variables_names:
                             all_x_variables_names.append(variable) #add variable name to list
@@ -764,7 +797,7 @@ while Xicount < len(Xijs):
                             all_x_variables.append(variable_var)
                         else:
                             variable_var = all_x_variables[all_x_variables_names.index(variable)]
-                        objective_gurobi += (2*Xij_cost/3) * variable_var
+                        objective_gurobi += (Xij_cost*(boarding_cost)) * variable_var
             tows +=1
         Xijcount += 1
     Xicount += 1
@@ -773,15 +806,12 @@ Y_count = 0
 for Yi in Yik:
     Yi_var = Yik_var[Y_count]
     if int(Yi[-1][-1])==2:
-        print(Yi[0],Yi[1],Yi[2])
         objective += str(t_anti_cost) + '*'+Yi[0] + " + " + str(t_cost) + '*'+Yi[1] + " + " + str(2*t_cost) + '*'+Yi[2] + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] +(2* t_cost) * Yi_var[2]
     elif int(Yi[-1][-1])==1:
-        print(Yi[0],Yi[1])
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " + str(t_cost) + '*'+str(Yi[1]) + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0] + t_cost * Yi_var[1] 
     elif int(Yi[-1][-1])==0:
-        print(Yi[0])
         objective += str(t_anti_cost) + '*'+str(Yi[0]) + " + " 
         objective_gurobi += t_anti_cost * Yi_var[0]
     Y_count += 1
