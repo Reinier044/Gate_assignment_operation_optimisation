@@ -35,6 +35,7 @@ boarding_cost = 2/3 #What is the importance of passenger walking distance when b
 
 #Check input data for errors
 Stop = False
+print()
 if len(Flights) != len(Flights_arrival):
     print('missing arrival times \n \n \n')
     Stop = True
@@ -76,7 +77,10 @@ for gate_number in range(len(Gates)):
     previous_gate_number = Gates[gate_number]
 if deboarding_cost + boarding_cost != 1:
     Stop = True
-    print("Boarding and deboarding costs incorrect. Make sure the sum equals 1.")
+    print("Boarding and deboarding costs incorrect. Make sure the sum equals 1. \n \n \n")
+if tow_1_1 > 1 or tow_2_1+tow_2_2 > 1:
+    Stop = True
+    print("Specified towing times are outside of the aircraft staying time. Please revise. \n \n \n")
 if Stop:
     sys.exit()
 print("input data satisfies requirements \n")
