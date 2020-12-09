@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 import numpy as np
 import matplotlib.patches as mpatches
@@ -113,7 +113,42 @@ for flight in Flights:
                                 break
                         break
                 break
-            
+
+#calculate objective: 
+distance_walked = 0
+tows_performed = 0
+for i in range(len(solution_df["flight_number"])):
+    if solution_df["tows"][i] > 0: 
+        tows_performed +=1
+    if  i == (len(solution_df["flight_number"])-1): 
+        if solution_df["tows"][i] == 0: 
+            flightnumber = solution_df["flight_number"][i]
+            gatenumber = solution_df["gate_number"][i]
+            distance_walked += 2*(Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)])
+        else:
+            flightnumber = solution_df["flight_number"][i]
+            gatenumber = solution_df["gate_number"][i]
+    else: 
+        if solution_df["tows"][i] == 0 and solution_df["tows"][i+1] != 1: 
+            flightnumber = solution_df["flight_number"][i]
+            gatenumber = solution_df["gate_number"][i]
+            distance_walked += 2*(Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)])
+        if solution_df["tows"][i] == 0 and solution_df["tows"][i+1] == 1: 
+            flightnumber = solution_df["flight_number"][i]
+            gatenumber = solution_df["gate_number"][i]
+            distance_walked += Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)]
+        if solution_df["tows"][i] == 1 and solution_df["tows"][i+1] != 2:
+            flightnumber = solution_df["flight_number"][i]
+            gatenumber = solution_df["gate_number"][i]
+            distance_walked += Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)]
+        if solution_df["tows"][i] == 2: 
+            flightnumber = solution_df["flight_number"][i]
+            gatenumber = solution_df["gate_number"][i]
+            distance_walked += Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)]
+print("-------------------------------------------------------------------")
+print("Total distance walked: ", distance_walked)
+print("Average distance walked: ", (distance_walked/(sum(Flights_PAX)*2)))
+print("The number of tows performed is: ", tows_performed) 
 # =============================================================================
 # PLOT DATA
 # =============================================================================
@@ -129,7 +164,7 @@ gnt.set_ylim(0, (len(Gates)) + 1)
 gnt.set_xlim(open_time, (open_time + operating_hours + 1)) 
   
 # Setting Chart title
-gnt.set_title('Gate schedule')
+#gnt.set_title('Gate schedule')
 
 # Setting labels for x-axis and y-axis 
 gnt.set_xlabel('Time [Hours]') 
