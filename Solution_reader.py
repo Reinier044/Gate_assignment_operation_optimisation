@@ -1,11 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 import numpy as np
 import matplotlib.patches as mpatches
-from Using_Gurobi import tow1_times, tow2_times
+from Using_Gurobi import tow1_times, tow2_times, Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 # =============================================================================
 # READ SOLUTION FILE
@@ -133,11 +130,11 @@ for i in range(len(solution_df["flight_number"])):
             flightnumber = solution_df["flight_number"][i]
             gatenumber = solution_df["gate_number"][i]
             distance_walked += 2*(Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)])
-        if solution_df["tows"][i] == 0 and solution_df["tows"][i+1] == 1: 
+        if solution_df["tows"][i] == 0 and solution_df["tows"][i+1] == 1:
             flightnumber = solution_df["flight_number"][i]
             gatenumber = solution_df["gate_number"][i]
             distance_walked += Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)]
-        if solution_df["tows"][i] == 1 and solution_df["tows"][i+1] != 2:
+        if solution_df["tows"][i] == 1 and solution_df["tows"][i+1] == 0:
             flightnumber = solution_df["flight_number"][i]
             gatenumber = solution_df["gate_number"][i]
             distance_walked += Flights_PAX[Flights.index(flightnumber)] * Gates_distance[Gates.index(gatenumber)]
