@@ -8,7 +8,7 @@ import copy
 #from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 #from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
-from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
 
 #define storage lists
@@ -22,15 +22,15 @@ text_file = open("gurobi_test.txt", "w")
 model = Model("Gate Assignment")
 
 #Model inputs
-t_cost = 0
+t_cost = 500
 t_anti_cost = 0
 tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
-tow_2_1 = (1/3) #At which moment during staying time happens the first tow if the aircraft is towed twice
-tow_2_2 = (2/3) #At which moment during staying time happens the second tow if the aircraft is towed twice
+tow_2_1 = 1/3 #At which moment during staying time happens the first tow if the aircraft is towed twice
+tow_2_2 = 2/3 #At which moment during staying time happens the second tow if the aircraft is towed twice
 Tow_stay_1 = 0.75 #How many hours does the aircraft stay before one tow can practically take place
 Tow_stay_2 = 1.5 #How many hours does the aircraft stay before two tows can practically take place
-deboarding_cost = 1/3 #What is the importance of passenger walking distance when deboarding?
-boarding_cost = 2/3 #What is the importance of passenger walking distance when boarding?
+deboarding_cost = 0.5 #What is the importance of passenger walking distance when deboarding?
+boarding_cost = 0.5 #What is the importance of passenger walking distance when boarding?
 
 
 #Check input data for errors
@@ -131,13 +131,24 @@ for it in ait:
         t_tow_1.append(0)
         t_tow_2.append(0)
     elif (Flights_t_stay[flight_count])<=Tow_stay_2:
-        Flights_max_tow[flight_count] = 1
-        t_tow_1.append(int(tow_1_1*max(it)))    #tow is halfway staying time
-        t_tow_2.append(int(2*max(it)))      #outside of staying time
+        if Flights_max_tow[flight_count] == 0:
+            t_tow_1.append(0)
+            t_tow_2.append(0)
+        if Flights_max_tow[flight_count] >= 1:
+            Flights_max_tow[flight_count] = 1
+            t_tow_1.append(int(tow_1_1*max(it)))    #tow is halfway staying time
+            t_tow_2.append(int(2*max(it)))      #outside of staying time
     elif (Flights_t_stay[flight_count])>=Tow_stay_2:
-        Flights_max_tow[flight_count] = 2
-        t_tow_1.append(int(tow_2_1*max(it))) #1/3 for (1/2) tows
-        t_tow_2.append(int(tow_2_2*max(it))) #2/3 for (2/2) tows
+        if Flights_max_tow[flight_count] == 0:
+            t_tow_1.append(0)
+            t_tow_2.append(0)
+        if Flights_max_tow[flight_count] == 1:
+            Flights_max_tow[flight_count] = 1
+            t_tow_1.append(int(tow_1_1*max(it)))    #tow is halfway staying time
+            t_tow_2.append(int(2*max(it)))      #outside of staying time
+        if Flights_max_tow[flight_count] >= 1:
+            t_tow_1.append(int(tow_2_1*max(it))) #1/3 for (1/2) tows
+            t_tow_2.append(int(tow_2_2*max(it))) #2/3 for (2/2) tows
     flight_count += 1
     
 
@@ -166,11 +177,16 @@ while flightnumber < len(Flights):
     tows = 0
     Yi = np.array([])
     Yi_var = np.array([])
-    while tows-1 < maxtows:
+    if maxtows == 0:
         Yi = np.append(Yi,('y'+str(Flights[flightnumber])+"_"+str(tows)))
         Y_var = model.addVar(vtype=GRB.INTEGER, name=('y'+str(Flights[flightnumber])+"_"+str(tows)))
         Yi_var = np.append(Yi_var, Y_var)
-        tows += 1
+    else:
+        while tows-1 < maxtows:
+            Yi = np.append(Yi,('y'+str(Flights[flightnumber])+"_"+str(tows)))
+            Y_var = model.addVar(vtype=GRB.INTEGER, name=('y'+str(Flights[flightnumber])+"_"+str(tows)))
+            Yi_var = np.append(Yi_var, Y_var)
+            tows += 1
     Yik.append(Yi)
     Yik_var.append(Yi_var)
     flightnumber += 1

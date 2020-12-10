@@ -9,8 +9,8 @@ import numpy as np
 Flights = np.array([1,2,3])
 Flights_arrival = np.array([10,11.5,11])
 Flights_class = np.array([2,2,2])
-Flights_t_stay = np.array([1,1,1])
-Flights_max_tow = np.array([2,2,2])
+Flights_t_stay = np.array([2,0.5,1])
+Flights_max_tow = np.array([0,0,0])
 Flights_PAX = np.array([200,200,200])
 
 #define gates
