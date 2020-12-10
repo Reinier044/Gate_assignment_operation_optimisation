@@ -144,14 +144,9 @@ for i in range(len(solution_df["flight_number"])):
             flightnumber = solution_df["flight_number"][i]
             gatenumber = solution_df["gate_number"][i]
             distance_walked += Flights_PAX[Flights[np.where(flightnumber)]] * Gates_distance[Gates[np.where(gatenumber)]]
+Average_walking_distance =((distance_walked/(sum(Flights_PAX)*2)))[1:][:-2]
 
-print("13. Walking distances calculated \n")
-print("-------------------------------------------------------------------")
-
-print("Total distance walked: ", str(distance_walked)[1:][:-2])
-print("Average distance walked: ", str((distance_walked/(sum(Flights_PAX)*2)))[1:][:-2])
-print("The number of tows performed is: ", tows_performed) 
-print("------------------------------------------------------------------- \n")
+print("13. Walking distances calculated")
 
 # =============================================================================
 # PLOT DATA
@@ -210,4 +205,4 @@ for i in range(len(solution_df)):
     plt.broken_barh([(solution_df['start'][i] + 0.03, solution_df['end'][i] - solution_df['start'][i] - 0.03,)], (solution_df['gate_number'][i] - 0.45, 0.9), color=color, label=label)
 
 plt.savefig('figures/schedule_scen1')
-print("14. Plots available")
+print("15. Plots available \n")

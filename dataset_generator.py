@@ -63,7 +63,7 @@ t_stay_medium = [t_int*60,t_int*60*8] # [min]
 t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 17 
+n_gates = 20 
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
