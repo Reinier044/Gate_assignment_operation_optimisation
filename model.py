@@ -3,9 +3,11 @@ import numpy as np
 import math
 import sys
 import copy
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # select input data from the list:
-input_data = "mini_dataset" #"dataset_generator" #"dataset"
+input_data = "dataset" #"dataset_generator" #"dataset" #"mini_dataset"
 
 if input_data == "mini_dataset":
     from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
@@ -45,7 +47,6 @@ boarding_cost = 0.5 #What is the importance of passenger walking distance when b
 
 #Check input data for errors. Return found errors to user
 Stop = False
-print()
 if len(Flights) != len(Flights_arrival):
     print('missing arrival times \n \n \n')
     Stop = True
@@ -108,9 +109,9 @@ for F_class in Flights_class:
 if Stop:
     sys.exit()
 print()
-print("------------------------------------------------------------------- \n")
-print("input data satisfies requirements \n")
-print("input data comes from:", input_data, "\n")
+print("-------------------------------------------------------------------")
+print("input data satisfies requirements ")
+print("input data comes from:", input_data )
 print("------------------------------------------------------------------- \n")
 
 
@@ -881,11 +882,11 @@ text_file.close()
     
 
 
-print("------------------------------------------------------------------- \n")
+print("----------------------------Gurobi optimization--------------------------------------- \n")
 model.update()
 model.optimize()
 print()
-print("------------------------------------------------------------------- \n")
+print("-------------------------------------------------------------------------------------- \n")
 print("11. Gurobi optimized problem")
 
 text_file = open("Solution.txt", "w")

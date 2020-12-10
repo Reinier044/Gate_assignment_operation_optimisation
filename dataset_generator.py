@@ -18,13 +18,13 @@ import matplotlib.pyplot as plt
 # PARAMETERS
 # ============================================================================
 # Flights
-n_flights = 60
+n_flights = 550
 large_aircraft_percentage = 0.1
 medium_aircraft_percentage = 0.6
 
 # Airport
-open_time = 7
-operating_hours = 6
+open_time = 5
+operating_hours = 24
 close_time = open_time+operating_hours
 t_int = 0.25
 inv_t_int = 1/t_int
@@ -34,19 +34,19 @@ n_ac_per_interval = n_flights/(operating_hours/t_int)
 
 #Feedback realism of generated dataset
 if n_flights/operating_hours > 50:
-    print("airport size unrealistic. \n")
+    print("airport size unrealistic based on flights/hour. \n")
     printed = 1
 elif n_flights/operating_hours > 30 and printed == 0:
-    print("airport has size of Schiphol. \n")
+    print("airport has size of Schiphol based on flights/hour. \n")
     printed = 1
 elif n_flights/operating_hours > 12 and printed == 0:
-    print("airport has size of secondary airport (eg Milan Linate). \n")
+    print("airport has size of secondary airport based on flights/hour (eg Milan Linate). \n")
     printed = 1
 elif n_flights/operating_hours > 6 and printed == 0:
-    print("airport has size of Rotterdam. \n")
+    print("airport has size of Rotterdam based on flights/hour. \n")
     printed = 1
 elif printed == 0:
-    print("airport is pretty small. \n")
+    print("airport is pretty small based on flights/hour. \n")
     
 
 # Aircraft
@@ -63,7 +63,7 @@ t_stay_medium = [t_int*60,t_int*60*8] # [min]
 t_stay_small = [t_int*60,t_int*60*4] # [min]
 
 # Gates
-n_gates = 20 
+n_gates = 50 
 n_terminals = 1
 dist_gates_to_hall = 20
 gate_seperation = 7
@@ -362,7 +362,10 @@ while time < close_time:
 # plt.bar(time_lst, aircraft_present_slot, t_int)
 # plt.yticks(np.arange(0,(max(aircraft_present_slot)+1), 1))
 # plt.show
-    
+
+print("====================================================================================== ")
+print("------------------------------Dataset generated--------------------------------------- ")
+print("====================================================================================== \n ")   
     
     
     

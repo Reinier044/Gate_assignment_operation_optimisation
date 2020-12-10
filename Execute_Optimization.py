@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 from model import tow1_times, tow2_times, Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int,input_data
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 print("12. pre-processing started")
 # =============================================================================
@@ -206,3 +208,6 @@ for i in range(len(solution_df)):
 
 plt.savefig('figures/schedule_scen1')
 print("15. Plots available \n")
+print("====================================================================================== ")
+print("----------------------------Execution Completed--------------------------------------- ")
+print("====================================================================================== \n ")

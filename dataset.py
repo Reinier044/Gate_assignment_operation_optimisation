@@ -39,11 +39,11 @@ while time < close_time:
     
     time += t_int
 
-Flights_pax = list(Flights_PAX)
-print("Average staying time: ", average_time_stay)
-print("Number of large aircraft: ", Flights_pax.count(400))
-print("Number of medium aircraft: ", Flights_pax.count(250))
-print("Number of small aircraft: ", Flights_pax.count(100))
+#Flights_pax = list(Flights_PAX)
+#print("Average staying time: ", average_time_stay)
+#print("Number of large aircraft: ", Flights_pax.count(400))
+#print("Number of medium aircraft: ", Flights_pax.count(250))
+#print("Number of small aircraft: ", Flights_pax.count(100))
 # #This plot shows a histogram of the aircraft in the timeslots
 # plt.bar(time_lst, aircraft_present_slot, t_int)
 # plt.yticks(np.arange(0,(max(aircraft_present_slot)+1), 1))
