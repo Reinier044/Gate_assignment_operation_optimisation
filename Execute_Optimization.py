@@ -210,4 +210,4 @@ for i in range(len(solution_df)):
     plt.broken_barh([(solution_df['start'][i] + 0.03, solution_df['end'][i] - solution_df['start'][i] - 0.03,)], (solution_df['gate_number'][i] - 0.45, 0.9), color=color, label=label)
 
 plt.savefig('figures/schedule_scen1')
-print("14. Plots available")
+print("15. Plots available")

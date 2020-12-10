@@ -4,13 +4,23 @@ import math
 import sys
 import copy
 
+# select input data from the list:
+input_data = "mini_dataset" #"dataset_generator" #"dataset"
 
-#from test_set_Stijn import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
-#from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
-from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+if input_data == "mini_dataset":
+    from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
 
+elif input_data == "dataset_generator":
+    from dataset_generator import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance,open_time,operating_hours,t_int
 
+elif input_data == "dataset":
+    from dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
+
+else:
+    print()
+    print("wrong source of input data. Specify proper name: dataset/mini_dataset/dataset_generator. \m \n \n")
+    sys.exit()
+    
 #define storage lists
 variables = []
 all_anti_constraints = []
@@ -33,7 +43,7 @@ deboarding_cost = 0.5 #What is the importance of passenger walking distance when
 boarding_cost = 0.5 #What is the importance of passenger walking distance when boarding?
 
 
-#Check input data for errors
+#Check input data for errors. Return found errors to user
 Stop = False
 print()
 if len(Flights) != len(Flights_arrival):
@@ -87,9 +97,22 @@ if deboarding_cost + boarding_cost != 1:
 if tow_1_1 > 1 or tow_2_1+tow_2_2 > 1:
     Stop = True
     print("Specified towing times are outside of the aircraft staying time. Please revise. \n \n \n")
+max_class = 0
+for G_class in Gates_class:
+    if G_class > max_class:
+        max_class = G_class
+for F_class in Flights_class:
+    if F_class > max_class:
+        Stop = True
+        print("Class of flight is not supported by the airport. Please revise. \n \n \n")
 if Stop:
     sys.exit()
+print()
+print("------------------------------------------------------------------- \n")
 print("input data satisfies requirements \n")
+print("input data comes from:", input_data, "\n")
+print("------------------------------------------------------------------- \n")
+
 
 #Generate time interval (in hours) array
 t_start = open_time
@@ -102,7 +125,7 @@ times = np.array([])
 while t <= tmax+t_int:
     times = np.append(times,t)
     t += t_int
-print('time intervals created')
+print('1. time intervals created')
 
    
 #Generate ait
@@ -123,7 +146,7 @@ while index < len(Flights):
     ait = np.vstack([ait,a])
     index += 1
 ait = np.delete(ait,0,axis=0)
-print('ait created')
+print('2. ait created')
 
 #Lists that define how many intervals should occur before a tow takes place:
 t_tow_1 = []
@@ -172,7 +195,7 @@ for flightnumber in Flights:
         #Xis_var = np.append(Xis_var, Xij_var)
     Xijs.append(Xis)
     #Xijs_var.append(Xis_var)
-print('Xijs created')
+print('3. Xijs created')
 
 #Generate base Yik's
 Yik = []
@@ -196,7 +219,7 @@ while flightnumber < len(Flights):
     Yik.append(Yi)
     Yik_var.append(Yi_var)
     flightnumber += 1
-print('Yiks created')
+print('4. Yiks created')
 
 model.update()
 
@@ -517,7 +540,7 @@ for time in times:
                     
         gate_count += 1
     time_count += 1
-print('Constraints for gates created')
+print('5. Constraints for gates created')
 
 
 for i in range(len(all_anti_constraints)):
@@ -713,7 +736,7 @@ for time in times:
                               
         flight_count += 1
     time_count += 1
-print('Constraints for flights created')
+print('6. Constraints for flights created')
 model.update()
 
 #Sum of Yik = 1
@@ -747,7 +770,7 @@ for Yi_var in Yik_var:
             count_y +=1
     Yicount += 1
     model.addConstr(constraint_var, "== " , 1, name=constraint_name)
-print('Constraints for tows created')   
+print('7. Constraints for tows created')   
 model.update()
 
 #-----------------Write to file------------------------------------------------
@@ -759,7 +782,7 @@ for variable in variables:
         definition = "dvar " + type_variable + variable + ";"
         n = text_file.write(definition + "\n")
 n= text_file.write("\n")
-print('Variables written')
+print('8. Variables written')
 
 #Write objective function:
 objective = ''
@@ -844,25 +867,26 @@ model.setObjective(objective_gurobi, GRB.MINIMIZE)
 objective = objective[:-3]
 n = text_file.write("minimize" + "\n" + objective + ';' +"\n" + "\n")
 
-print(objective)
 
-print('Objective written')
+print('9. Objective written')
 
 #Write constraints
 n= text_file.write("subject to { \n")
 for constraint in all_constraints:
     n = text_file.write(constraint + "\n")
 n= text_file.write("}" + "\n")
-print('Constrains written \n')
+print('10. Constrains written \n \n')
 
 text_file.close()
     
 
 
-
-
+print("------------------------------------------------------------------- \n")
 model.update()
 model.optimize()
+print()
+print("------------------------------------------------------------------- \n")
+print("11. Gurobi optimized problem")
 
 text_file = open("Solution.txt", "w")
 for var in model.getVars():
@@ -873,22 +897,23 @@ text_file.close()
 status = model.status
 if status != GRB.Status.OPTIMAL:
     if status == GRB.Status.UNBOUNDED:
+        print()
         print('The model cannot be solved because it is unbounded')
     elif status == GRB.Status.INFEASIBLE:
+        print()
         print('The model is infeasible; computing IIS')
         model.computeIIS()
-        print('\nThe following constraint(s) cannot be satisfied:')
+        print('\n The following constraint(s) cannot be satisfied:')
         for c in model.getConstrs():
             if c.IISConstr:
                 print('%s' % c.constrName)
     elif status != GRB.Status.INF_OR_UNBD:
+        print()
         print('Optimization was stopped with status %d' % status)
     
 
-
-#print (model.display())
-
-print("------------------------------------------------")
+print()
+print("---------------------------Solution--------------------------------")
 for var in model.getVars():
     if var.x ==1:
         print(var.varName, " = ", var.x)
@@ -909,3 +934,6 @@ while flight_count < len(t_tow_1):
          tow2_times.append(0)
 
     flight_count += 1
+print("------------------------------------------------------------------- \n")
+
+
