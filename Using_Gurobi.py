@@ -63,6 +63,12 @@ while t_arrival < len(Flights_arrival):
         Stop = True
         print("arrival time is before the airfield opens. The airport opens at ", open_time, "\n \n \n")
     t_arrival += 1
+t_arrival = 0
+while t_arrival < len(Flights_arrival):
+    if Flights_arrival[t_arrival] > open_time + operating_hours:
+        Stop = True
+        print("arrival time is after the airfield closes for arrivals. The airport closes at ", open_time+ operating_hours, "\n \n \n")
+    t_arrival += 1
 previous_flight_number = 0
 for flight_number in range(len(Flights)):
     if Flights[flight_number] != previous_flight_number + 1:

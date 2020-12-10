@@ -7,7 +7,7 @@ Created on Thu Nov 19 09:05:28 2020
 import numpy as np
 #define flights
 Flights = np.array([1,2,3])
-Flights_arrival = np.array([10,11.5,11])
+Flights_arrival = np.array([15,11.5,11])
 Flights_class = np.array([2,2,2])
 Flights_t_stay = np.array([2,0.5,1])
 Flights_max_tow = np.array([0,0,0])
