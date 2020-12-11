@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 # PARAMETERS
 # ============================================================================
 # Flights
-n_flights = 550
+n_flights = 350
 large_aircraft_percentage = 0.1
 medium_aircraft_percentage = 0.6
 

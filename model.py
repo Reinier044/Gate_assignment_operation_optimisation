@@ -1,3 +1,26 @@
+# =============================================================================
+# Select input data:
+# =============================================================================
+input_data = "dataset" #"dataset_generator" or "dataset" or "mini_dataset"
+
+# =============================================================================
+# Model input data
+# =============================================================================
+t_cost = 500
+t_anti_cost = 0
+tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
+tow_2_1 = 1/3 #At which moment during staying time happens the first tow if the aircraft is towed twice
+tow_2_2 = 2/3 #At which moment during staying time happens the second tow if the aircraft is towed twice
+Tow_stay_1 = 0.75 #How many hours does the aircraft stay before one tow can practically take place
+Tow_stay_2 = 1.5 #How many hours does the aircraft stay before two tows can practically take place
+deboarding_cost = 0.5 #What is the importance of passenger walking distance when deboarding?
+boarding_cost = 0.5 #What is the importance of passenger walking distance when boarding?
+
+
+
+# =============================================================================
+# Begin code
+# =============================================================================
 from gurobipy import *
 import numpy as np
 import math
@@ -6,8 +29,6 @@ import copy
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# select input data from the list:
-input_data = "dataset" #"dataset_generator" #"dataset" #"mini_dataset"
 
 if input_data == "mini_dataset":
     from mini_dataset import Flights,Flights_arrival,Flights_class,Flights_t_stay,Flights_max_tow,Flights_PAX, Gates, Gates_class, Gates_distance, open_time,operating_hours,t_int
@@ -23,6 +44,7 @@ else:
     print("wrong source of input data. Specify proper name: dataset/mini_dataset/dataset_generator. \m \n \n")
     sys.exit()
     
+    
 #define storage lists
 variables = []
 all_anti_constraints = []
@@ -30,19 +52,10 @@ all_anti_core_constraints = []
 all_core_constraints = []
 all_constraints = []
 
-text_file = open("gurobi_test.txt", "w")
+#Store code in CPLEX format for back-up
+text_file = open("CPLEX_code.txt", "w")
 model = Model("Gate Assignment")
 
-#Model inputs
-t_cost = 500
-t_anti_cost = 0
-tow_1_1 = 0.5 #At which moment during staying time happens a tow if the aircraft is towed once
-tow_2_1 = 1/3 #At which moment during staying time happens the first tow if the aircraft is towed twice
-tow_2_2 = 2/3 #At which moment during staying time happens the second tow if the aircraft is towed twice
-Tow_stay_1 = 0.75 #How many hours does the aircraft stay before one tow can practically take place
-Tow_stay_2 = 1.5 #How many hours does the aircraft stay before two tows can practically take place
-deboarding_cost = 0.5 #What is the importance of passenger walking distance when deboarding?
-boarding_cost = 0.5 #What is the importance of passenger walking distance when boarding?
 
 
 #Check input data for errors. Return found errors to user
