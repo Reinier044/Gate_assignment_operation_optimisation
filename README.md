@@ -1,7 +1,7 @@
 # operations_optimisation_gate_assignment
 
 This is the model accompanying the assignment for the Course AE4441-16 Operations Optimisation. 
-The model was written by Stijn Brunia (4549643), Matthijs Torsij (4533399) & Reinier Vos (4588304). 
+The model was written by Stijn Brunia, Matthijs Torsij & Reinier Vos. 
 To run the model, simply run "Execute_Optimization.py". It will produce a plot containing the
 assignments made by the solver. The complete solution is stored under variable "solution_df". Or
 in "Solution.txt".
